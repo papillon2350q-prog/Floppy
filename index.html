@@ -9,125 +9,141 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .video-container { background: #111; border-radius: 16px; overflow: hidden; }
+        @media (max-width: 640px) {
+            .p-8 { padding: 1rem !important; }
+            .text-5xl { font-size: 2.25rem !important; }
+        }
     </style>
 </head>
 <body class="bg-gray-950 text-white min-h-screen">
-    <div class="max-w-4xl mx-auto p-8">
-        <div class="text-center mb-10">
-            <h1 class="text-5xl font-bold mb-2">🎟️ TikTok → Telegram Sticker</h1>
-            <p class="text-xl text-gray-400">Convierte tus stickers de TikTok en stickers de vídeo listos para Telegram (.WEBM)</p>
+    <div class="max-w-4xl mx-auto px-4 py-6 md:p-8">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold mb-2">🎟️ TikTok → Telegram Sticker</h1>
+            <p class="text-lg md:text-xl text-gray-400">Convierte y recorta tus stickers de TikTok</p>
         </div>
 
-        <!-- Paso 1: Link de TikTok -->
-        <div class="bg-gray-900 rounded-3xl p-8 mb-8">
-            <h2 class="text-2xl font-semibold mb-4 flex items-center gap-2">
+        <!-- Paso 1 -->
+        <div class="bg-gray-900 rounded-3xl p-6 md:p-8 mb-6">
+            <h2 class="text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2">
                 <span>1.</span> Pega el enlace del sticker de TikTok
             </h2>
-            <div class="flex gap-3">
+            <div class="flex flex-col sm:flex-row gap-3">
                 <input id="tiktokUrl" type="text" placeholder="https://www.tiktok.com/@usuario/video/..." 
-                       class="flex-1 bg-gray-800 border border-gray-700 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-pink-500">
+                       class="flex-1 bg-gray-800 border border-gray-700 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-pink-500">
                 <button onclick="openDownloader()" 
-                        class="bg-pink-600 hover:bg-pink-700 px-8 rounded-2xl font-medium flex items-center gap-2">
+                        class="bg-pink-600 hover:bg-pink-700 px-8 py-4 rounded-2xl font-medium flex items-center justify-center gap-2 text-base">
                     <span>Abrir Descargador</span>
                     <span class="text-2xl">📥</span>
                 </button>
             </div>
-            <p class="text-sm text-gray-400 mt-4">Se abrirá SnapTik (sin marca de agua). Descarga el MP4 y súbelo en el paso 2.</p>
+            <p class="text-sm text-gray-400 mt-4">Se abre SnapTik. Descarga el MP4 sin marca de agua.</p>
         </div>
 
-        <!-- Paso 2: Subir archivo -->
-        <div class="bg-gray-900 rounded-3xl p-8 mb-8">
-            <h2 class="text-2xl font-semibold mb-4 flex items-center gap-2">
-                <span>2.</span> Sube el vídeo MP4 descargado
+        <!-- Paso 2 -->
+        <div class="bg-gray-900 rounded-3xl p-6 md:p-8 mb-6">
+            <h2 class="text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2">
+                <span>2.</span> Sube el vídeo MP4
             </h2>
             <input type="file" id="videoUpload" accept="video/mp4,video/webm" 
-                   class="block w-full text-sm text-gray-400 file:mr-4 file:py-4 file:px-8 file:rounded-2xl file:border-0 file:bg-pink-600 file:text-white hover:file:bg-pink-700">
+                   class="block w-full text-sm text-gray-400 file:mr-4 file:py-4 file:px-6 file:rounded-2xl file:border-0 file:bg-pink-600 file:text-white hover:file:bg-pink-700">
         </div>
 
         <!-- Editor -->
-        <div id="editor" class="hidden bg-gray-900 rounded-3xl p-8">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div id="editor" class="hidden bg-gray-900 rounded-3xl p-6 md:p-8">
+            <div class="flex flex-col lg:flex-row gap-8">
                 <!-- Vista previa -->
-                <div>
-                    <h2 class="text-xl font-semibold mb-4">Vista previa (512×512)</h2>
-                    <div class="video-container aspect-square bg-black flex items-center justify-center relative">
+                <div class="flex-1">
+                    <h2 class="text-xl font-semibold mb-3">Vista previa (512×512)</h2>
+                    <div class="video-container aspect-square bg-black flex items-center justify-center relative mx-auto max-w-[280px] sm:max-w-[340px] lg:max-w-none">
                         <video id="previewVideo" class="hidden" muted></video>
-                        <canvas id="previewCanvas" width="512" height="512" class="max-w-full max-h-full"></canvas>
+                        <canvas id="previewCanvas" width="512" height="512" class="w-full max-h-full"></canvas>
                     </div>
-                    <div class="mt-4 flex justify-center gap-4 text-sm">
+                    <div class="mt-6 flex flex-wrap justify-center gap-3">
                         <button onclick="togglePlay()" id="playBtn"
-                                class="bg-white text-black px-6 py-2 rounded-2xl font-medium flex items-center gap-2">
+                                class="bg-white text-black px-6 py-3 rounded-2xl font-medium flex items-center gap-2 text-base">
                             ▶️ Reproducir segmento
                         </button>
                         <button onclick="exportSticker()" 
-                                class="bg-emerald-600 hover:bg-emerald-700 px-8 py-2 rounded-2xl font-medium">
+                                class="bg-emerald-600 hover:bg-emerald-700 px-8 py-3 rounded-2xl font-medium text-base">
                             ⬇️ Descargar .WEBM listo para Telegram
                         </button>
                     </div>
                 </div>
 
                 <!-- Controles -->
-                <div class="space-y-8">
+                <div class="flex-1 space-y-6 text-sm">
+                    <!-- Tiempo -->
                     <div>
-                        <label class="block text-sm font-medium mb-2">Punto de inicio (segundos)</label>
+                        <label class="block font-medium mb-2">Punto de inicio</label>
                         <input type="range" id="startSlider" min="0" max="100" step="0.1" value="0" class="w-full accent-pink-500">
-                        <div class="flex justify-between text-xs text-gray-400">
-                            <span id="startValue">0.0</span>
-                            <span id="durationMax">0.0</span>
-                        </div>
+                        <div class="flex justify-between text-xs text-gray-400"><span id="startValue">0.0</span><span id="durationMax">0.0</span></div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium mb-2">Duración del sticker (segundos)</label>
+                        <label class="block font-medium mb-2">Duración del sticker</label>
                         <input type="range" id="durationSlider" min="0.1" max="5" step="0.1" value="2" class="w-full accent-pink-500">
-                        <div class="flex justify-between text-xs text-gray-400">
-                            <span id="durationValue">2.0</span>
-                            <span class="text-amber-400">Máx. recomendado: 3s (Telegram)</span>
+                        <div class="flex justify-between text-xs text-gray-400"><span id="durationValue">2.0</span><span class="text-amber-400">Máx. recomendado: 3s</span></div>
+                    </div>
+
+                    <!-- NUEVO: Recorte -->
+                    <div class="pt-4 border-t border-gray-700">
+                        <h3 class="font-semibold mb-4 flex items-center gap-2">✂️ Recortar el sticker</h3>
+                        
+                        <div class="space-y-5">
+                            <div>
+                                <label class="block mb-1">Zoom (acercar para recortar)</label>
+                                <input type="range" id="zoomSlider" min="1" max="3" step="0.05" value="1.2" class="w-full accent-pink-500">
+                                <div class="text-right text-xs text-gray-400" id="zoomValue">1.2x</div>
+                            </div>
+                            
+                            <div>
+                                <label class="block mb-1">Desplazamiento Horizontal</label>
+                                <input type="range" id="panXSlider" min="-1" max="1" step="0.02" value="0" class="w-full accent-pink-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block mb-1">Desplazamiento Vertical</label>
+                                <input type="range" id="panYSlider" min="-1" max="1" step="0.02" value="0" class="w-full accent-pink-500">
+                            </div>
+                            
+                            <button onclick="resetCrop()" 
+                                    class="text-sm text-pink-400 hover:text-pink-300 underline">🔄 Resetear recorte</button>
                         </div>
                     </div>
 
-                    <div class="bg-gray-800 rounded-2xl p-5 text-sm">
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Resolución: 512×512</p>
+                    <div class="bg-gray-800 rounded-2xl p-5 text-xs space-y-2">
+                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Siempre 512×512</p>
                         <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Sin audio</p>
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Formato WEBM (VP9)</p>
-                        <p class="text-gray-400 mt-3">Perfecto para stickers de vídeo de Telegram</p>
-                    </div>
-
-                    <div class="text-xs text-gray-400">
-                        <strong>Nota:</strong> El vídeo se redimensiona automáticamente preservando la relación de aspecto y centrándose en 512×512.
+                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Formato WEBM VP9</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Instrucciones finales -->
-        <div class="mt-12 bg-gray-900 rounded-3xl p-8">
-            <h2 class="text-2xl font-semibold mb-6">Cómo subir tu sticker a Telegram (paso a paso)</h2>
-            <ol class="space-y-4 text-sm">
-                <li class="flex gap-4"><span class="font-mono bg-gray-800 w-6 h-6 rounded-xl flex items-center justify-center">1</span> Abre Telegram y busca <strong>@Stickers</strong></li>
-                <li class="flex gap-4"><span class="font-mono bg-gray-800 w-6 h-6 rounded-xl flex items-center justify-center">2</span> Escribe <strong>/newvideo</strong> y envía</li>
-                <li class="flex gap-4"><span class="font-mono bg-gray-800 w-6 h-6 rounded-xl flex items-center justify-center">3</span> Ponle un nombre a tu pack (ej: MisTikTokStickers)</li>
-                <li class="flex gap-4"><span class="font-mono bg-gray-800 w-6 h-6 rounded-xl flex items-center justify-center">4</span> Envía el archivo <strong>.WEBM</strong> que descargaste</li>
-                <li class="flex gap-4"><span class="font-mono bg-gray-800 w-6 h-6 rounded-xl flex items-center justify-center">5</span> Elige un emoji que represente el sticker</li>
-                <li class="flex gap-4"><span class="font-mono bg-gray-800 w-6 h-6 rounded-xl flex items-center justify-center">6</span> Escribe <strong>/publish</strong> y listo. Comparte el enlace del pack.</li>
+        <!-- Instrucciones -->
+        <div class="mt-8 bg-gray-900 rounded-3xl p-6 md:p-8 text-sm">
+            <h2 class="text-xl font-semibold mb-4">Cómo subir a Telegram</h2>
+            <ol class="space-y-3">
+                <li class="flex gap-3"><span class="font-mono bg-gray-800 w-5 h-5 rounded-lg flex items-center justify-center text-xs">1</span> Abre @Stickers y escribe <strong>/newvideo</strong></li>
+                <li class="flex gap-3"><span class="font-mono bg-gray-800 w-5 h-5 rounded-lg flex items-center justify-center text-xs">2</span> Dale nombre al pack</li>
+                <li class="flex gap-3"><span class="font-mono bg-gray-800 w-5 h-5 rounded-lg flex items-center justify-center text-xs">3</span> Envía el archivo <strong>.WEBM</strong></li>
+                <li class="flex gap-3"><span class="font-mono bg-gray-800 w-5 h-5 rounded-lg flex items-center justify-center text-xs">4</span> Elige emoji y publica</li>
             </ol>
         </div>
 
-        <div class="text-center text-gray-500 text-xs mt-12">
-            Página creada para ti • Funciona 100% en el navegador • Sin servidores
+        <div class="text-center text-gray-500 text-xs mt-10">
+            Versión móvil + recorte • Funciona sin internet después de cargar
         </div>
     </div>
 
     <script>
-        // Tailwind script
+        let video = null, canvas = null, ctx = null;
+        let zoom = 1.2, panX = 0, panY = 0;
+        let isPlaying = false;
+
         function initTailwind() {
             tailwind.config = { content: ["./**/*.{html,js}"] };
         }
-
-        let video = null;
-        let canvas = null;
-        let ctx = null;
-        let isPlaying = false;
 
         document.getElementById('videoUpload').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -138,32 +154,53 @@
             
             video.onloadedmetadata = () => {
                 document.getElementById('editor').classList.remove('hidden');
-                
                 canvas = document.getElementById('previewCanvas');
                 ctx = canvas.getContext('2d');
 
-                // Configurar sliders
+                // Sliders tiempo
                 const startSlider = document.getElementById('startSlider');
                 const durationSlider = document.getElementById('durationSlider');
-                
                 startSlider.max = video.duration.toFixed(1);
                 durationSlider.max = Math.min(5, video.duration).toFixed(1);
 
-                startSlider.addEventListener('input', updateValues);
-                durationSlider.addEventListener('input', updateValues);
-                
-                updateValues();
+                startSlider.addEventListener('input', updateTimeValues);
+                durationSlider.addEventListener('input', updateTimeValues);
+
+                // Sliders recorte
+                document.getElementById('zoomSlider').addEventListener('input', updateCrop);
+                document.getElementById('panXSlider').addEventListener('input', updateCrop);
+                document.getElementById('panYSlider').addEventListener('input', updateCrop);
+
+                updateTimeValues();
+                updateCrop();
                 drawPreview();
             };
         });
 
-        function updateValues() {
+        function updateTimeValues() {
             const start = parseFloat(document.getElementById('startSlider').value);
             const dur = parseFloat(document.getElementById('durationSlider').value);
-            
             document.getElementById('startValue').textContent = start.toFixed(1);
             document.getElementById('durationValue').textContent = dur.toFixed(1);
             document.getElementById('durationMax').textContent = (start + dur).toFixed(1);
+        }
+
+        function updateCrop() {
+            zoom = parseFloat(document.getElementById('zoomSlider').value);
+            panX = parseFloat(document.getElementById('panXSlider').value);
+            panY = parseFloat(document.getElementById('panYSlider').value);
+            document.getElementById('zoomValue').textContent = zoom.toFixed(1) + 'x';
+            drawPreview();
+        }
+
+        function resetCrop() {
+            zoom = 1.2;
+            panX = 0;
+            panY = 0;
+            document.getElementById('zoomSlider').value = 1.2;
+            document.getElementById('panXSlider').value = 0;
+            document.getElementById('panYSlider').value = 0;
+            updateCrop();
         }
 
         function drawPreview() {
@@ -173,22 +210,17 @@
                 if (!video.paused && !video.ended) {
                     const start = parseFloat(document.getElementById('startSlider').value);
                     if (video.currentTime < start) video.currentTime = start;
-                    
-                    // Dibujar escalado a 512x512 preservando aspecto
-                    ctx.clearRect(0, 0, 512, 512);
-                    const scale = Math.min(512 / video.videoWidth, 512 / video.videoHeight);
-                    const newW = video.videoWidth * scale;
-                    const newH = video.videoHeight * scale;
-                    const x = (512 - newW) / 2;
-                    const y = (512 - newH) / 2;
-                    ctx.drawImage(video, x, y, newW, newH);
+
+                    renderFrame();
                 }
                 requestAnimationFrame(loop);
             }
             loop();
-            
+
             video.addEventListener('timeupdate', () => {
-                if (video.currentTime >= parseFloat(document.getElementById('startSlider').value) + parseFloat(document.getElementById('durationSlider').value)) {
+                const start = parseFloat(document.getElementById('startSlider').value);
+                const dur = parseFloat(document.getElementById('durationSlider').value);
+                if (video.currentTime >= start + dur) {
                     video.pause();
                     isPlaying = false;
                     document.getElementById('playBtn').innerHTML = '▶️ Reproducir segmento';
@@ -196,11 +228,26 @@
             });
         }
 
+        function renderFrame() {
+            if (!video || !ctx) return;
+            const vw = video.videoWidth;
+            const vh = video.videoHeight;
+
+            const sourceW = vw / zoom;
+            const sourceH = vh / zoom;
+            let sourceX = (vw - sourceW) / 2 + panX * (vw / 2);
+            let sourceY = (vh - sourceH) / 2 + panY * (vh / 2);
+
+            sourceX = Math.max(0, Math.min(sourceX, vw - sourceW));
+            sourceY = Math.max(0, Math.min(sourceY, vh - sourceH));
+
+            ctx.clearRect(0, 0, 512, 512);
+            ctx.drawImage(video, sourceX, sourceY, sourceW, sourceH, 0, 0, 512, 512);
+        }
+
         function togglePlay() {
             if (!video) return;
             const start = parseFloat(document.getElementById('startSlider').value);
-            const duration = parseFloat(document.getElementById('durationSlider').value);
-            
             if (!isPlaying) {
                 video.currentTime = start;
                 video.play();
@@ -218,76 +265,51 @@
             
             const startTime = parseFloat(document.getElementById('startSlider').value);
             const duration = parseFloat(document.getElementById('durationSlider').value);
-            
-            // Preparar canvas y stream
+
             const stream = canvas.captureStream(30);
-            let mimeType = 'video/webm';
-            if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) mimeType = 'video/webm;codecs=vp9';
-            else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) mimeType = 'video/webm;codecs=vp8';
-            
-            const recorder = new MediaRecorder(stream, { mimeType });
+            const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
+            const recorder = new MediaRecorder(stream, { mimeType: mime });
             const chunks = [];
-            
+
             recorder.ondataavailable = e => chunks.push(e.data);
             recorder.onstop = () => {
-                const blob = new Blob(chunks, { type: mimeType });
+                const blob = new Blob(chunks, { type: mime });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'mi-sticker-tiktok.webm';
+                a.download = 'mi-sticker-recortado.webm';
                 a.click();
-                
-                if (mimeType.includes('vp9')) {
-                    alert('✅ ¡Sticker .WEBM descargado! Listo para subir a @Stickers');
-                } else {
-                    alert('✅ Descargado (VP8). Si Telegram no lo acepta, usa la herramienta ffmpeg que te explico abajo.');
-                }
+                alert('✅ ¡Sticker .WEBM descargado con tu recorte! Sube directo a @Stickers');
             };
-            
+
             recorder.start();
-            
-            // Grabar el segmento
+
             video.currentTime = startTime;
             video.muted = true;
             await video.play();
-            
-            let endTime = startTime + duration;
+
+            const endTime = startTime + duration;
             const checkEnd = setInterval(() => {
                 if (video.currentTime >= endTime) {
                     recorder.stop();
                     video.pause();
                     clearInterval(checkEnd);
                 }
-            }, 100);
-            
-            // Dibujar en el canvas mientras graba
-            const drawDuringRecord = () => {
-                if (video.currentTime >= endTime) return;
-                ctx.clearRect(0, 0, 512, 512);
-                const scale = Math.min(512 / video.videoWidth, 512 / video.videoHeight);
-                const newW = video.videoWidth * scale;
-                const newH = video.videoHeight * scale;
-                const x = (512 - newW) / 2;
-                const y = (512 - newH) / 2;
-                ctx.drawImage(video, x, y, newW, newH);
-                requestAnimationFrame(drawDuringRecord);
-            };
-            drawDuringRecord();
+                renderFrame(); // mantiene el recorte durante la grabación
+            }, 16);
         }
 
         function openDownloader() {
             const url = document.getElementById('tiktokUrl').value.trim();
             if (url) {
-                // SSSTik acepta enlaces directamente
                 window.open('https://ssstik.io/?url=' + encodeURIComponent(url), '_blank');
             } else {
                 window.open('https://ssstik.io/', '_blank');
             }
-            alert('✅ Descargador abierto. Pega el enlace de TikTok y descarga el MP4 sin marca de agua.');
+            alert('✅ Descargador abierto. Descarga el MP4 y súbelo aquí.');
         }
 
-        // Inicializar
         window.onload = initTailwind;
     </script>
 </body>
-  </html>
+                                    </html>
