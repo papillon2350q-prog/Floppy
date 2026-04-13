@@ -8,29 +8,26 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
         body { font-family: 'Inter', sans-serif; }
-        .video-container { background: #111; border-radius: 16px; overflow: hidden; position: relative; }
-        .crop-overlay {
+        .video-container { 
+            background: #111; 
+            border-radius: 16px; 
+            overflow: hidden; 
+            position: relative; 
+        }
+        .crop-area {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1/1;
+            overflow: hidden;
+            border: 3px dashed #ff00ff;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+        }
+        #previewVideo {
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
-            border: 3px dashed #ff00ff;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
-            pointer-events: none;
-            width: 100%;
-            height: 100%;
-            max-width: 512px;
-            max-height: 512px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            color: #ff00ff;
-            font-weight: bold;
-            text-shadow: 0 0 10px #000;
-            z-index: 10;
+            transform-origin: center center;
         }
-        #previewVideo { transform-origin: center center; }
         @media (max-width: 640px) { .p-8 { padding: 1rem !important; } }
     </style>
 </head>
@@ -38,7 +35,7 @@
     <div class="max-w-4xl mx-auto px-4 py-6 md:p-8">
         <div class="text-center mb-8">
             <h1 class="text-4xl md:text-5xl font-bold mb-2">🎟️ TikTok → Telegram Sticker</h1>
-            <p class="text-lg md:text-xl text-emerald-400">✅ Preview fluido + Exportación a 20 fps (más suave)</p>
+            <p class="text-lg md:text-xl text-emerald-400">✅ Vídeo dentro del marco + exportación 20 fps fluida</p>
         </div>
 
         <!-- Paso 1 -->
@@ -72,16 +69,20 @@
             <div class="flex flex-col lg:flex-row gap-8">
                 <div class="flex-1">
                     <h2 class="text-xl font-semibold mb-3">Vista previa (512×512)</h2>
-                    <div class="video-container aspect-square bg-black flex items-center justify-center relative mx-auto max-w-[300px] sm:max-w-[380px] lg:max-w-none" id="previewContainer">
-                        <video id="previewVideo" class="absolute top-1/2 left-1/2 w-full h-full object-contain" muted></video>
-                        <div id="cropFrame" class="crop-overlay hidden">
-                            MARCO DE RECORTE<br>512×512
+                    <div class="video-container mx-auto max-w-[300px] sm:max-w-[380px] lg:max-w-none" id="previewContainer">
+                        <div class="crop-area" id="cropArea">
+                            <video id="previewVideo" muted></video>
+                            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div class="text-center text-[#ff00ff] text-xs font-bold leading-tight drop-shadow-lg">
+                                    MARCO DE RECORTE<br>512×512
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <div id="exportStatus" class="hidden mt-4 text-center text-emerald-400 font-medium text-sm flex items-center justify-center gap-2">
                         <span class="animate-spin inline-block w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full"></span>
-                        Exportando a 20 fps... (2-7 segundos)
+                        Exportando a 20 fps...
                     </div>
 
                     <div class="mt-6 flex flex-wrap justify-center gap-3">
@@ -110,7 +111,9 @@
                     </div>
 
                     <div class="pt-4 border-t border-gray-700">
-                        <h3 class="font-semibold mb-4 flex items-center gap-2">✂️ Ajustar marco (arrastra en el vídeo)</h3>
+                        <h3 class="font-semibold mb-4 flex items-center gap-2">
+                            ✂️ Ajustar marco (arrastra en el vídeo)
+                        </h3>
                         <div>
                             <label class="block mb-1">Zoom</label>
                             <input type="range" id="zoomSlider" min="1" max="4" step="0.05" value="1.2" class="w-full accent-pink-500">
@@ -121,15 +124,16 @@
                     </div>
 
                     <div class="bg-gray-800 rounded-2xl p-5 text-xs space-y-2">
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Preview 100% fluido</p>
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Exportación a 20 fps (más suave)</p>
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> ≤ 256 KB garantizado</p>
-                        <p id="sizeWarning" class="text-amber-400 text-xs hidden">⚠️ Superó 256 KB. Baja duración o zoom y vuelve a exportar.</p>
+                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Vídeo dentro del marco</p>
+                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Exportación 20 fps (fluida)</p>
+                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> ≤ 256 KB</p>
+                        <p id="sizeWarning" class="text-amber-400 text-xs hidden">⚠️ Superó 256 KB. Baja duración o zoom.</p>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Instrucciones -->
         <div class="mt-8 bg-gray-900 rounded-3xl p-6 md:p-8 text-sm">
             <h2 class="text-xl font-semibold mb-4">Cómo subir a Telegram</h2>
             <ol class="space-y-3">
@@ -237,8 +241,6 @@
 
         function setupDragHandlers() {
             const container = document.getElementById('previewContainer');
-            const frame = document.getElementById('cropFrame');
-            frame.classList.remove('hidden');
 
             container.addEventListener('pointerdown', e => {
                 if (e.button !== 0) return;
@@ -304,7 +306,6 @@
             const startTime = parseFloat(document.getElementById('startSlider').value);
             const duration = parseFloat(document.getElementById('durationSlider').value);
 
-            // === 20 FPS = mucho más fluido ===
             const stream = exportCanvas.captureStream(20);
             const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
             const recorder = new MediaRecorder(stream, { mimeType: mime });
@@ -325,15 +326,14 @@
                 const warningEl = document.getElementById('sizeWarning');
                 if (blob.size > 256 * 1024) {
                     warningEl.classList.remove('hidden');
-                    alert(`⚠️ Pesa ${sizeKB} KB (supera 256 KB).\n\nReduce la duración a 1.5-2 s o baja el zoom y vuelve a exportar.`);
+                    alert(`⚠️ Pesa ${sizeKB} KB (supera 256 KB).\nReduce duración o zoom.`);
                 } else {
                     warningEl.classList.add('hidden');
-                    alert(`✅ ¡Sticker exportado a 20 fps!\nPeso: ${sizeKB} KB (perfecto y fluido)\nSube directo a @Stickers`);
+                    alert(`✅ ¡Sticker listo a 20 fps!\nPeso: ${sizeKB} KB\nSube a @Stickers`);
                 }
             };
 
             recorder.start();
-
             video.currentTime = startTime;
             video.muted = true;
             await video.play();
