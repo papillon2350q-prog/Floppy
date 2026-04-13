@@ -19,7 +19,7 @@
     <div class="max-w-4xl mx-auto px-4 py-6 md:p-8">
         <div class="text-center mb-8">
             <h1 class="text-4xl md:text-5xl font-bold mb-2">🎟️ TikTok → Telegram Sticker</h1>
-            <p class="text-lg md:text-xl text-gray-400">Convierte y recorta tus stickers de TikTok</p>
+            <p class="text-lg md:text-xl text-gray-400">Recorta + tamaño ≤ 256 KB</p>
         </div>
 
         <!-- Paso 1 -->
@@ -65,7 +65,7 @@
                         </button>
                         <button onclick="exportSticker()" 
                                 class="bg-emerald-600 hover:bg-emerald-700 px-8 py-3 rounded-2xl font-medium text-base">
-                            ⬇️ Descargar .WEBM listo para Telegram
+                            ⬇️ Descargar .WEBM (≤ 256 KB)
                         </button>
                     </div>
                 </div>
@@ -76,36 +76,32 @@
                     <div>
                         <label class="block font-medium mb-2">Punto de inicio</label>
                         <input type="range" id="startSlider" min="0" max="100" step="0.1" value="0" class="w-full accent-pink-500">
-                        <div class="flex justify-between text-xs text-gray-400"><span id="startValue">0.0</span><span id="durationMax">0.0</span></div>
+                        <div class="flex justify-between text-xs text-gray-400"><span id="startValue">0.0 s</span><span id="durationMax">0.0 s</span></div>
                     </div>
 
                     <div>
                         <label class="block font-medium mb-2">Duración del sticker</label>
                         <input type="range" id="durationSlider" min="0.1" max="5" step="0.1" value="2" class="w-full accent-pink-500">
-                        <div class="flex justify-between text-xs text-gray-400"><span id="durationValue">2.0</span><span class="text-amber-400">Máx. recomendado: 3s</span></div>
+                        <div class="flex justify-between text-xs text-gray-400"><span id="durationValue">2.0 s</span><span id="remainingInfo" class="text-amber-400"></span></div>
                     </div>
 
-                    <!-- NUEVO: Recorte -->
+                    <!-- Recorte -->
                     <div class="pt-4 border-t border-gray-700">
                         <h3 class="font-semibold mb-4 flex items-center gap-2">✂️ Recortar el sticker</h3>
-                        
                         <div class="space-y-5">
                             <div>
                                 <label class="block mb-1">Zoom (acercar para recortar)</label>
                                 <input type="range" id="zoomSlider" min="1" max="3" step="0.05" value="1.2" class="w-full accent-pink-500">
                                 <div class="text-right text-xs text-gray-400" id="zoomValue">1.2x</div>
                             </div>
-                            
                             <div>
                                 <label class="block mb-1">Desplazamiento Horizontal</label>
                                 <input type="range" id="panXSlider" min="-1" max="1" step="0.02" value="0" class="w-full accent-pink-500">
                             </div>
-                            
                             <div>
                                 <label class="block mb-1">Desplazamiento Vertical</label>
                                 <input type="range" id="panYSlider" min="-1" max="1" step="0.02" value="0" class="w-full accent-pink-500">
                             </div>
-                            
                             <button onclick="resetCrop()" 
                                     class="text-sm text-pink-400 hover:text-pink-300 underline">🔄 Resetear recorte</button>
                         </div>
@@ -114,7 +110,8 @@
                     <div class="bg-gray-800 rounded-2xl p-5 text-xs space-y-2">
                         <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Siempre 512×512</p>
                         <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Sin audio</p>
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Formato WEBM VP9</p>
+                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Formato WEBM VP9 • Máx. 256 KB</p>
+                        <p id="sizeWarning" class="text-amber-400 text-xs hidden">⚠️ Si pesa más de 256 KB, reduce la duración o el zoom</p>
                     </div>
                 </div>
             </div>
@@ -132,7 +129,7 @@
         </div>
 
         <div class="text-center text-gray-500 text-xs mt-10">
-            Versión móvil + recorte • Funciona sin internet después de cargar
+            Versión móvil + recorte + ≤ 256 KB • Funciona sin internet después de cargar
         </div>
     </div>
 
@@ -157,13 +154,17 @@
                 canvas = document.getElementById('previewCanvas');
                 ctx = canvas.getContext('2d');
 
-                // Sliders tiempo
+                // === AJUSTE 2: Sliders inteligentes con duración exacta del vídeo ===
                 const startSlider = document.getElementById('startSlider');
                 const durationSlider = document.getElementById('durationSlider');
+                
                 startSlider.max = video.duration.toFixed(1);
-                durationSlider.max = Math.min(5, video.duration).toFixed(1);
+                updateDurationMax(); // calcula duración restante exacta
 
-                startSlider.addEventListener('input', updateTimeValues);
+                startSlider.addEventListener('input', () => {
+                    updateTimeValues();
+                    updateDurationMax();
+                });
                 durationSlider.addEventListener('input', updateTimeValues);
 
                 // Sliders recorte
@@ -177,12 +178,28 @@
             };
         });
 
+        function updateDurationMax() {
+            const start = parseFloat(document.getElementById('startSlider').value);
+            const remaining = video.duration - start;
+            const maxAllowed = Math.min(5, remaining); // máximo 5s o lo que quede
+            const durationSlider = document.getElementById('durationSlider');
+            
+            durationSlider.max = maxAllowed.toFixed(1);
+            
+            // si la duración actual es mayor que la nueva máxima, la bajamos automáticamente
+            if (parseFloat(durationSlider.value) > maxAllowed) {
+                durationSlider.value = maxAllowed.toFixed(1);
+            }
+            
+            document.getElementById('remainingInfo').textContent = `Máx. posible: ${maxAllowed.toFixed(1)} s`;
+        }
+
         function updateTimeValues() {
             const start = parseFloat(document.getElementById('startSlider').value);
             const dur = parseFloat(document.getElementById('durationSlider').value);
-            document.getElementById('startValue').textContent = start.toFixed(1);
-            document.getElementById('durationValue').textContent = dur.toFixed(1);
-            document.getElementById('durationMax').textContent = (start + dur).toFixed(1);
+            document.getElementById('startValue').textContent = start.toFixed(1) + " s";
+            document.getElementById('durationValue').textContent = dur.toFixed(1) + " s";
+            document.getElementById('durationMax').textContent = (start + dur).toFixed(1) + " s";
         }
 
         function updateCrop() {
@@ -210,7 +227,6 @@
                 if (!video.paused && !video.ended) {
                     const start = parseFloat(document.getElementById('startSlider').value);
                     if (video.currentTime < start) video.currentTime = start;
-
                     renderFrame();
                 }
                 requestAnimationFrame(loop);
@@ -260,13 +276,15 @@
             }
         }
 
+        // === AJUSTE 1: Control de peso ≤ 256 KB ===
         async function exportSticker() {
             if (!video || !canvas) return;
             
             const startTime = parseFloat(document.getElementById('startSlider').value);
             const duration = parseFloat(document.getElementById('durationSlider').value);
 
-            const stream = canvas.captureStream(30);
+            // 15 fps + VP9 = archivos mucho más pequeños (cumple 256 KB en la mayoría de casos)
+            const stream = canvas.captureStream(15);
             const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
             const recorder = new MediaRecorder(stream, { mimeType: mime });
             const chunks = [];
@@ -274,12 +292,24 @@
             recorder.ondataavailable = e => chunks.push(e.data);
             recorder.onstop = () => {
                 const blob = new Blob(chunks, { type: mime });
+                const sizeKB = (blob.size / 1024).toFixed(1);
+
+                // Descarga
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = 'mi-sticker-recortado.webm';
                 a.click();
-                alert('✅ ¡Sticker .WEBM descargado con tu recorte! Sube directo a @Stickers');
+
+                // Control de peso
+                const warningEl = document.getElementById('sizeWarning');
+                if (blob.size > 256 * 1024) {
+                    warningEl.classList.remove('hidden');
+                    alert(`⚠️ El sticker pesa ${sizeKB} KB (supera los 256 KB).\n\nConsejos para reducirlo:\n• Baja la duración a 1.5-2 segundos\n• Reduce el zoom\n• Elige un clip con menos movimiento\n\nVuelve a exportar después de ajustar.`);
+                } else {
+                    warningEl.classList.add('hidden');
+                    alert(`✅ ¡Sticker listo!\nPeso: ${sizeKB} KB (perfecto para Telegram)\nSube directo a @Stickers`);
+                }
             };
 
             recorder.start();
@@ -312,4 +342,4 @@
         window.onload = initTailwind;
     </script>
 </body>
-                                    </html>
+</html>
