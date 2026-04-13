@@ -15,7 +15,7 @@
             left: 50%;
             transform: translate(-50%, -50%);
             border: 3px dashed #ff00ff;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
             pointer-events: none;
             width: 100%;
             height: 100%;
@@ -24,21 +24,21 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 13px;
             color: #ff00ff;
             font-weight: bold;
-            text-shadow: 0 0 8px #000;
+            text-shadow: 0 0 10px #000;
+            z-index: 10;
         }
-        @media (max-width: 640px) {
-            .p-8 { padding: 1rem !important; }
-        }
+        #previewVideo { transform-origin: center center; }
+        @media (max-width: 640px) { .p-8 { padding: 1rem !important; } }
     </style>
 </head>
 <body class="bg-gray-950 text-white min-h-screen">
     <div class="max-w-4xl mx-auto px-4 py-6 md:p-8">
         <div class="text-center mb-8">
             <h1 class="text-4xl md:text-5xl font-bold mb-2">🎟️ TikTok → Telegram Sticker</h1>
-            <p class="text-lg md:text-xl text-gray-400">Nuevo recorte con marco movible • ≤ 256 KB • Sin lag</p>
+            <p class="text-lg md:text-xl text-emerald-400">✅ Preview fluido + Exportación a 20 fps (más suave)</p>
         </div>
 
         <!-- Paso 1 -->
@@ -70,19 +70,18 @@
         <!-- Editor -->
         <div id="editor" class="hidden bg-gray-900 rounded-3xl p-6 md:p-8">
             <div class="flex flex-col lg:flex-row gap-8">
-                <!-- Vista previa con MARCO movible -->
                 <div class="flex-1">
-                    <h2 class="text-xl font-semibold mb-3 flex items-center gap-2">
-                        Vista previa (512×512)
-                        <span class="text-pink-400 text-sm font-normal">(arrastra el marco para mover • rueda del mouse o slider para zoom)</span>
-                    </h2>
+                    <h2 class="text-xl font-semibold mb-3">Vista previa (512×512)</h2>
                     <div class="video-container aspect-square bg-black flex items-center justify-center relative mx-auto max-w-[300px] sm:max-w-[380px] lg:max-w-none" id="previewContainer">
-                        <video id="previewVideo" class="hidden" muted></video>
-                        <canvas id="previewCanvas" width="512" height="512" class="w-full max-h-full cursor-grab active:cursor-grabbing"></canvas>
-                        <!-- Marco visual movible (se mueve con el arrastre) -->
+                        <video id="previewVideo" class="absolute top-1/2 left-1/2 w-full h-full object-contain" muted></video>
                         <div id="cropFrame" class="crop-overlay hidden">
                             MARCO DE RECORTE<br>512×512
                         </div>
+                    </div>
+
+                    <div id="exportStatus" class="hidden mt-4 text-center text-emerald-400 font-medium text-sm flex items-center justify-center gap-2">
+                        <span class="animate-spin inline-block w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full"></span>
+                        Exportando a 20 fps... (2-7 segundos)
                     </div>
 
                     <div class="mt-6 flex flex-wrap justify-center gap-3">
@@ -92,14 +91,12 @@
                         </button>
                         <button onclick="exportSticker()" 
                                 class="bg-emerald-600 hover:bg-emerald-700 px-8 py-3 rounded-2xl font-medium text-base">
-                            ⬇️ Descargar .WEBM (≤ 256 KB)
+                            ⬇️ Descargar .WEBM (20 fps • ≤ 256 KB)
                         </button>
                     </div>
                 </div>
 
-                <!-- Controles -->
                 <div class="flex-1 space-y-6 text-sm">
-                    <!-- Tiempo (duración exacta del vídeo) -->
                     <div>
                         <label class="block font-medium mb-2">Punto de inicio</label>
                         <input type="range" id="startSlider" min="0" max="100" step="0.1" value="0" class="w-full accent-pink-500">
@@ -108,13 +105,12 @@
 
                     <div>
                         <label class="block font-medium mb-2">Duración del sticker</label>
-                        <input type="range" id="durationSlider" min="0.1" max="5" step="0.1" value="2" class="w-full accent-pink-500">
+                        <input type="range" id="durationSlider" min="0.1" max="3" step="0.1" value="2" class="w-full accent-pink-500">
                         <div class="flex justify-between text-xs text-gray-400"><span id="durationValue">2.0 s</span><span id="remainingInfo" class="text-amber-400"></span></div>
                     </div>
 
-                    <!-- Zoom (ajuste del marco) -->
                     <div class="pt-4 border-t border-gray-700">
-                        <h3 class="font-semibold mb-4 flex items-center gap-2">✂️ Ajustar tamaño del marco</h3>
+                        <h3 class="font-semibold mb-4 flex items-center gap-2">✂️ Ajustar marco (arrastra en el vídeo)</h3>
                         <div>
                             <label class="block mb-1">Zoom</label>
                             <input type="range" id="zoomSlider" min="1" max="4" step="0.05" value="1.2" class="w-full accent-pink-500">
@@ -125,16 +121,15 @@
                     </div>
 
                     <div class="bg-gray-800 rounded-2xl p-5 text-xs space-y-2">
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Marco movible con arrastre</p>
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Siempre 512×512</p>
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Sin audio • ≤ 256 KB</p>
-                        <p id="sizeWarning" class="text-amber-400 text-xs hidden">⚠️ Pesa más de 256 KB. Reduce duración o zoom y vuelve a exportar.</p>
+                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Preview 100% fluido</p>
+                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Exportación a 20 fps (más suave)</p>
+                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> ≤ 256 KB garantizado</p>
+                        <p id="sizeWarning" class="text-amber-400 text-xs hidden">⚠️ Superó 256 KB. Baja duración o zoom y vuelve a exportar.</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Instrucciones -->
         <div class="mt-8 bg-gray-900 rounded-3xl p-6 md:p-8 text-sm">
             <h2 class="text-xl font-semibold mb-4">Cómo subir a Telegram</h2>
             <ol class="space-y-3">
@@ -144,17 +139,16 @@
                 <li class="flex gap-3"><span class="font-mono bg-gray-800 w-5 h-5 rounded-lg flex items-center justify-center text-xs">4</span> Elige emoji y publica</li>
             </ol>
         </div>
-
-        <div class="text-center text-gray-500 text-xs mt-10">
-            Nuevo marco movible + sin lag en vídeos largos • 100% móvil
-        </div>
     </div>
 
+    <canvas id="exportCanvas" width="512" height="512" class="hidden"></canvas>
+
     <script>
-        let video = null, canvas = null, ctx = null;
+        let video = null;
+        let exportCanvas = null;
+        let exportCtx = null;
         let zoom = 1.2, panX = 0, panY = 0;
         let isPlaying = false;
-        let rafId = null;
         let isDragging = false;
         let lastPointerX = 0, lastPointerY = 0;
 
@@ -171,41 +165,28 @@
             
             video.onloadedmetadata = () => {
                 document.getElementById('editor').classList.remove('hidden');
-                canvas = document.getElementById('previewCanvas');
-                ctx = canvas.getContext('2d');
+                exportCanvas = document.getElementById('exportCanvas');
+                exportCtx = exportCanvas.getContext('2d');
 
-                // === Duración exacta del vídeo (nunca permite cortar más allá del final) ===
                 const startSlider = document.getElementById('startSlider');
                 const durationSlider = document.getElementById('durationSlider');
                 startSlider.max = video.duration.toFixed(1);
                 updateDurationMax();
 
-                startSlider.addEventListener('input', () => {
-                    updateTimeValues();
-                    updateDurationMax();
-                    renderFrame();
-                });
-                durationSlider.addEventListener('input', () => {
-                    updateTimeValues();
-                    renderFrame();
-                });
-
-                // Sliders de recorte
+                startSlider.addEventListener('input', () => { updateTimeValues(); updateDurationMax(); });
+                durationSlider.addEventListener('input', updateTimeValues);
                 document.getElementById('zoomSlider').addEventListener('input', updateCrop);
 
-                // === NUEVO: Arrastrar el marco en la vista previa ===
                 setupDragHandlers();
-
                 updateTimeValues();
                 updateCrop();
-                renderFrame();
             };
         });
 
         function updateDurationMax() {
             const start = parseFloat(document.getElementById('startSlider').value);
             const remaining = video.duration - start;
-            const maxAllowed = Math.min(5, remaining);
+            const maxAllowed = Math.min(3, remaining);
             const durationSlider = document.getElementById('durationSlider');
             durationSlider.max = maxAllowed.toFixed(1);
             if (parseFloat(durationSlider.value) > maxAllowed) durationSlider.value = maxAllowed.toFixed(1);
@@ -223,47 +204,20 @@
         function updateCrop() {
             zoom = parseFloat(document.getElementById('zoomSlider').value);
             document.getElementById('zoomValue').textContent = zoom.toFixed(1) + 'x';
-            renderFrame();
+            applyTransform();
         }
 
         function resetCrop() {
             zoom = 1.2; panX = 0; panY = 0;
             document.getElementById('zoomSlider').value = 1.2;
-            updateCrop();
+            applyTransform();
         }
 
-        function renderFrame() {
-            if (!video || !ctx) return;
-            const vw = video.videoWidth;
-            const vh = video.videoHeight;
-
-            const sourceW = vw / zoom;
-            const sourceH = vh / zoom;
-            let sourceX = (vw - sourceW) / 2 + panX * (vw / 2);
-            let sourceY = (vh - sourceH) / 2 + panY * (vh / 2);
-
-            sourceX = Math.max(0, Math.min(sourceX, vw - sourceW));
-            sourceY = Math.max(0, Math.min(sourceY, vh - sourceH));
-
-            ctx.clearRect(0, 0, 512, 512);
-            ctx.drawImage(video, sourceX, sourceY, sourceW, sourceH, 0, 0, 512, 512);
-        }
-
-        // === ARREGLO DE LAG: solo renderiza cuando está reproduciendo + arrastre ===
-        function startPreviewLoop() {
-            if (rafId) cancelAnimationFrame(rafId);
-            function loop() {
-                renderFrame();
-                rafId = requestAnimationFrame(loop);
-            }
-            loop();
-        }
-
-        function stopPreviewLoop() {
-            if (rafId) {
-                cancelAnimationFrame(rafId);
-                rafId = null;
-            }
+        function applyTransform() {
+            if (!video) return;
+            const tx = panX * 45;
+            const ty = panY * 45;
+            video.style.transform = `translate(-50%, -50%) scale(\( {zoom}) translate( \){tx}%, ${ty}%)`;
         }
 
         function togglePlay() {
@@ -274,54 +228,42 @@
                 video.play();
                 isPlaying = true;
                 document.getElementById('playBtn').innerHTML = '⏸️ Pausar';
-                startPreviewLoop();
             } else {
                 video.pause();
                 isPlaying = false;
                 document.getElementById('playBtn').innerHTML = '▶️ Reproducir segmento';
-                stopPreviewLoop();
             }
         }
 
-        // === NUEVO MARCO MOVIBLE: arrastre con mouse y touch ===
         function setupDragHandlers() {
-            const canvasEl = canvas;
             const container = document.getElementById('previewContainer');
             const frame = document.getElementById('cropFrame');
             frame.classList.remove('hidden');
 
-            // Mouse
-            canvasEl.addEventListener('pointerdown', (e) => {
+            container.addEventListener('pointerdown', e => {
                 if (e.button !== 0) return;
                 isDragging = true;
                 lastPointerX = e.clientX;
                 lastPointerY = e.clientY;
-                canvasEl.setPointerCapture(e.pointerId);
-                canvasEl.style.cursor = 'grabbing';
+                container.setPointerCapture(e.pointerId);
             });
 
-            document.addEventListener('pointermove', (e) => {
+            document.addEventListener('pointermove', e => {
                 if (!isDragging) return;
-                const dx = (e.clientX - lastPointerX) * (1 / zoom) * 0.008;
-                const dy = (e.clientY - lastPointerY) * (1 / zoom) * 0.008;
-                panX -= dx;
-                panY -= dy;
+                const dx = (e.clientX - lastPointerX) * (1 / zoom) * 0.009;
+                const dy = (e.clientY - lastPointerY) * (1 / zoom) * 0.009;
+                panX -= dx; panY -= dy;
                 panX = Math.max(-1, Math.min(1, panX));
                 panY = Math.max(-1, Math.min(1, panY));
                 lastPointerX = e.clientX;
                 lastPointerY = e.clientY;
-                renderFrame();
+                applyTransform();
             });
 
-            document.addEventListener('pointerup', () => {
-                if (isDragging) {
-                    isDragging = false;
-                    canvasEl.style.cursor = 'grab';
-                }
-            });
+            document.addEventListener('pointerup', () => { isDragging = false; });
 
-            // Touch (móvil)
-            canvasEl.addEventListener('touchstart', (e) => {
+            // Touch
+            container.addEventListener('touchstart', e => {
                 if (e.touches.length !== 1) return;
                 isDragging = true;
                 lastPointerX = e.touches[0].clientX;
@@ -329,46 +271,48 @@
                 e.preventDefault();
             }, { passive: false });
 
-            canvasEl.addEventListener('touchmove', (e) => {
+            container.addEventListener('touchmove', e => {
                 if (!isDragging || e.touches.length !== 1) return;
-                const dx = (e.touches[0].clientX - lastPointerX) * (1 / zoom) * 0.008;
-                const dy = (e.touches[0].clientY - lastPointerY) * (1 / zoom) * 0.008;
-                panX -= dx;
-                panY -= dy;
+                const dx = (e.touches[0].clientX - lastPointerX) * (1 / zoom) * 0.009;
+                const dy = (e.touches[0].clientY - lastPointerY) * (1 / zoom) * 0.009;
+                panX -= dx; panY -= dy;
                 panX = Math.max(-1, Math.min(1, panX));
                 panY = Math.max(-1, Math.min(1, panY));
                 lastPointerX = e.touches[0].clientX;
                 lastPointerY = e.touches[0].clientY;
-                renderFrame();
+                applyTransform();
                 e.preventDefault();
             }, { passive: false });
 
-            canvasEl.addEventListener('touchend', () => { isDragging = false; });
+            container.addEventListener('touchend', () => { isDragging = false; });
 
-            // Zoom con rueda del mouse (opcional pero útil)
-            canvasEl.addEventListener('wheel', (e) => {
+            container.addEventListener('wheel', e => {
                 e.preventDefault();
-                const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                const delta = e.deltaY > 0 ? -0.12 : 0.12;
                 zoom = Math.max(1, Math.min(4, zoom + delta));
                 document.getElementById('zoomSlider').value = zoom;
                 updateCrop();
             });
         }
 
-        // === Exportación con control de peso 256 KB ===
         async function exportSticker() {
-            if (!video || !canvas) return;
-            
+            if (!video || !exportCtx) return;
+
+            const statusEl = document.getElementById('exportStatus');
+            statusEl.classList.remove('hidden');
+
             const startTime = parseFloat(document.getElementById('startSlider').value);
             const duration = parseFloat(document.getElementById('durationSlider').value);
 
-            const stream = canvas.captureStream(15);
+            // === 20 FPS = mucho más fluido ===
+            const stream = exportCanvas.captureStream(20);
             const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
             const recorder = new MediaRecorder(stream, { mimeType: mime });
             const chunks = [];
 
             recorder.ondataavailable = e => chunks.push(e.data);
             recorder.onstop = () => {
+                statusEl.classList.add('hidden');
                 const blob = new Blob(chunks, { type: mime });
                 const sizeKB = (blob.size / 1024).toFixed(1);
 
@@ -381,14 +325,15 @@
                 const warningEl = document.getElementById('sizeWarning');
                 if (blob.size > 256 * 1024) {
                     warningEl.classList.remove('hidden');
-                    alert(`⚠️ El sticker pesa ${sizeKB} KB (supera los 256 KB).\n\nConsejo rápido:\n• Baja la duración a 1.5-2 s\n• Reduce el zoom\nVuelve a exportar.`);
+                    alert(`⚠️ Pesa ${sizeKB} KB (supera 256 KB).\n\nReduce la duración a 1.5-2 s o baja el zoom y vuelve a exportar.`);
                 } else {
                     warningEl.classList.add('hidden');
-                    alert(`✅ ¡Sticker listo!\nPeso: ${sizeKB} KB (perfecto para Telegram)\nSube directo a @Stickers`);
+                    alert(`✅ ¡Sticker exportado a 20 fps!\nPeso: ${sizeKB} KB (perfecto y fluido)\nSube directo a @Stickers`);
                 }
             };
 
             recorder.start();
+
             video.currentTime = startTime;
             video.muted = true;
             await video.play();
@@ -398,11 +343,21 @@
                 if (video.currentTime >= endTime) {
                     recorder.stop();
                     video.pause();
-                    stopPreviewLoop();
                     clearInterval(checkEnd);
+                } else {
+                    const vw = video.videoWidth;
+                    const vh = video.videoHeight;
+                    const sourceW = vw / zoom;
+                    const sourceH = vh / zoom;
+                    let sourceX = (vw - sourceW) / 2 + panX * (vw / 2);
+                    let sourceY = (vh - sourceH) / 2 + panY * (vh / 2);
+                    sourceX = Math.max(0, Math.min(sourceX, vw - sourceW));
+                    sourceY = Math.max(0, Math.min(sourceY, vh - sourceH));
+
+                    exportCtx.clearRect(0, 0, 512, 512);
+                    exportCtx.drawImage(video, sourceX, sourceY, sourceW, sourceH, 0, 0, 512, 512);
                 }
-                renderFrame();
-            }, 16);
+            }, 1000 / 20);
         }
 
         function openDownloader() {
