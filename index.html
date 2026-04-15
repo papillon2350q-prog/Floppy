@@ -42,7 +42,7 @@
     <div class="max-w-4xl mx-auto px-4 py-6 md:p-8">
         <div class="text-center mb-8">
             <h1 class="text-4xl md:text-5xl font-bold mb-2">🎟️ TikTok → Telegram Sticker</h1>
-            <p class="text-lg md:text-xl text-emerald-400">✅ Volví al reproductor viejo + marco de recorte que pediste</p>
+            <p class="text-lg md:text-xl text-emerald-400">✅ Subida de vídeo arreglada + marco grande</p>
         </div>
 
         <!-- Paso 1 -->
@@ -125,9 +125,9 @@
                     </div>
 
                     <div class="bg-gray-800 rounded-2xl p-5 text-xs space-y-2">
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Volví al reproductor viejo (canvas)</p>
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Marco de recorte morado grande</p>
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Arrastra para mover • Zoom con slider</p>
+                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Subida de vídeo arreglada</p>
+                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Marco morado grande</p>
+                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Arrastra para mover</p>
                         <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Exportación 20 fps fluida</p>
                         <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> ≤ 256 KB</p>
                         <p id="sizeWarning" class="text-amber-400 text-xs hidden">⚠️ Superó 256 KB. Baja duración o zoom.</p>
@@ -148,6 +148,8 @@
         </div>
     </div>
 
+    <!-- Vídeo oculto (necesario para leer el archivo) -->
+    <video id="previewVideo" class="hidden" muted></video>
     <canvas id="exportCanvas" width="512" height="512" class="hidden"></canvas>
 
     <script>
@@ -160,16 +162,18 @@
         let isPlaying = false;
         let isDragging = false;
         let lastPointerX = 0, lastPointerY = 0;
+        let rafId = null;
 
         function initTailwind() {
             tailwind.config = { content: ["./**/*.{html,js}"] };
         }
 
+        // ←←← AQUÍ ESTABA EL ERROR (ya corregido)
         document.getElementById('videoUpload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
-            video = document.getElementById('previewVideo'); // solo para leer el vídeo
+            video = document.getElementById('previewVideo');
             video.src = URL.createObjectURL(file);
             
             video.onloadedmetadata = () => {
@@ -260,7 +264,6 @@
             }
         }
 
-        let rafId = null;
         function startPreviewLoop() {
             if (rafId) cancelAnimationFrame(rafId);
             function loop() {
@@ -302,7 +305,6 @@
 
             document.addEventListener('pointerup', () => { isDragging = false; });
 
-            // Touch
             container.addEventListener('touchstart', e => {
                 if (e.touches.length !== 1) return;
                 isDragging = true;
