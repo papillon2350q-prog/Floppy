@@ -8,12 +8,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
         body { font-family: 'Inter', sans-serif; }
-        .video-container { 
-            background: #111; 
-            border-radius: 16px; 
-            overflow: hidden; 
-            position: relative; 
-        }
+        .video-container { background: #111; border-radius: 16px; overflow: hidden; position: relative; }
         .crop-overlay {
             position: absolute;
             top: 50%;
@@ -42,7 +37,7 @@
     <div class="max-w-4xl mx-auto px-4 py-6 md:p-8">
         <div class="text-center mb-8">
             <h1 class="text-4xl md:text-5xl font-bold mb-2">🎟️ TikTok → Telegram Sticker</h1>
-            <p class="text-lg md:text-xl text-emerald-400">✅ Subida de vídeo arreglada + marco grande</p>
+            <p class="text-lg md:text-xl text-emerald-400">✅ Subida arreglada + marco grande</p>
         </div>
 
         <!-- Paso 1 -->
@@ -69,6 +64,7 @@
             </h2>
             <input type="file" id="videoUpload" accept="video/mp4,video/webm" 
                    class="block w-full text-sm text-gray-400 file:mr-4 file:py-4 file:px-6 file:rounded-2xl file:border-0 file:bg-pink-600 file:text-white hover:file:bg-pink-700">
+            <div id="uploadStatus" class="hidden mt-3 text-center text-emerald-400 text-sm">Cargando vídeo...</div>
         </div>
 
         <!-- Editor -->
@@ -125,12 +121,9 @@
                     </div>
 
                     <div class="bg-gray-800 rounded-2xl p-5 text-xs space-y-2">
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Subida de vídeo arreglada</p>
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Marco morado grande</p>
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Arrastra para mover</p>
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Exportación 20 fps fluida</p>
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> ≤ 256 KB</p>
-                        <p id="sizeWarning" class="text-amber-400 text-xs hidden">⚠️ Superó 256 KB. Baja duración o zoom.</p>
+                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Subida arreglada</p>
+                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Marco grande morado</p>
+                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Arrastra para recortar</p>
                     </div>
                 </div>
             </div>
@@ -148,7 +141,7 @@
         </div>
     </div>
 
-    <!-- Vídeo oculto (necesario para leer el archivo) -->
+    <!-- Vídeo oculto (necesario) -->
     <video id="previewVideo" class="hidden" muted></video>
     <canvas id="exportCanvas" width="512" height="512" class="hidden"></canvas>
 
@@ -168,17 +161,21 @@
             tailwind.config = { content: ["./**/*.{html,js}"] };
         }
 
-        // ←←← AQUÍ ESTABA EL ERROR (ya corregido)
         document.getElementById('videoUpload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
+            const status = document.getElementById('uploadStatus');
+            status.classList.remove('hidden');
+            status.textContent = "Cargando vídeo...";
+
             video = document.getElementById('previewVideo');
             video.src = URL.createObjectURL(file);
-            
+
             video.onloadedmetadata = () => {
+                status.classList.add('hidden');
                 document.getElementById('editor').classList.remove('hidden');
-                
+
                 canvas = document.getElementById('previewCanvas');
                 ctx = canvas.getContext('2d');
                 exportCanvas = document.getElementById('exportCanvas');
@@ -197,6 +194,10 @@
                 updateTimeValues();
                 updateCrop();
                 drawPreview();
+            };
+
+            video.onerror = () => {
+                status.textContent = "❌ Error al cargar el vídeo. Prueba otro MP4.";
             };
         });
 
