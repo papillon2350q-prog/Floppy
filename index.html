@@ -38,6 +38,25 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3);
         }
+        .slider-wrapper {
+            position: relative;
+        }
+        .fine-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 28px;
+            font-size: 18px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #374151;
+            color: #fff;
+            border-radius: 50%;
+            z-index: 10;
+        }
         @media (max-width: 640px) { .p-8 { padding: 1rem !important; } }
     </style>
 </head>
@@ -45,7 +64,7 @@
     <div class="max-w-4xl mx-auto px-4 py-6 md:p-8">
         <div class="text-center mb-8">
             <h1 class="text-4xl md:text-5xl font-bold mb-2">🎟️ TikTok → Telegram Sticker</h1>
-            <p class="text-lg md:text-xl text-emerald-400">Marco grande • 15 o 20 fps • Botones bonitos • Texto TikTok</p>
+            <p class="text-lg md:text-xl text-emerald-400">Marco grande • 15 o 20 fps • Texto TikTok • Preview + Export exactos</p>
         </div>
 
         <!-- Paso 1 -->
@@ -79,7 +98,7 @@
         <div id="editor" class="hidden bg-gray-900 rounded-3xl p-6 md:p-8">
             <div class="flex flex-col lg:flex-row gap-8">
                 <div class="flex-1">
-                    <h2 class="text-xl font-semibold mb-3">Vista previa (512×512) <span class="text-emerald-400 text-sm font-normal">(se reproduce en bucle exacto)</span></h2>
+                    <h2 class="text-xl font-semibold mb-3">Vista previa (512×512) <span class="text-emerald-400 text-sm font-normal">(exacto: inicio → duración + bucle)</span></h2>
                     <div class="video-container mx-auto max-w-[300px] sm:max-w-[380px] lg:max-w-none relative" id="previewContainer">
                         <canvas id="previewCanvas" width="512" height="512" class="w-full cursor-grab active:cursor-grabbing"></canvas>
                         <div id="cropFrame" class="crop-overlay hidden">
@@ -105,17 +124,26 @@
                 </div>
 
                 <div class="flex-1 space-y-6 text-sm">
-                    <!-- Sliders de tiempo y FPS (sin cambios) -->
+                    <!-- Punto de inicio con botones +/- -->
                     <div>
                         <label class="block font-medium mb-2">Punto de inicio</label>
-                        <input type="range" id="startSlider" min="0" max="100" step="0.1" value="0" class="w-full accent-pink-500">
-                        <div class="flex justify-between text-xs text-gray-400"><span id="startValue">0.0 s</span><span id="durationMax">0.0 s</span></div>
+                        <div class="slider-wrapper flex items-center gap-2">
+                            <button onclick="adjustSlider('startSlider', -0.01)" class="fine-btn text-lg">-</button>
+                            <input type="range" id="startSlider" min="0" max="100" step="0.01" value="0" class="flex-1 accent-pink-500">
+                            <button onclick="adjustSlider('startSlider', 0.01)" class="fine-btn text-lg">+</button>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-400"><span id="startValue">0.00 s</span><span id="durationMax">0.00 s</span></div>
                     </div>
 
+                    <!-- Duración con botones +/- -->
                     <div>
                         <label class="block font-medium mb-2">Duración del sticker</label>
-                        <input type="range" id="durationSlider" min="0.1" max="3" step="0.1" value="2" class="w-full accent-pink-500">
-                        <div class="flex justify-between text-xs text-gray-400"><span id="durationValue">2.0 s</span><span id="remainingInfo" class="text-amber-400"></span></div>
+                        <div class="slider-wrapper flex items-center gap-2">
+                            <button onclick="adjustSlider('durationSlider', -0.01)" class="fine-btn text-lg">-</button>
+                            <input type="range" id="durationSlider" min="0.1" max="3" step="0.01" value="2" class="flex-1 accent-pink-500">
+                            <button onclick="adjustSlider('durationSlider', 0.01)" class="fine-btn text-lg">+</button>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-400"><span id="durationValue">2.00 s</span><span id="remainingInfo" class="text-amber-400"></span></div>
                     </div>
 
                     <div class="pt-4 border-t border-gray-700">
@@ -135,35 +163,37 @@
 
                     <div class="pt-4 border-t border-gray-700">
                         <h3 class="font-semibold mb-4 flex items-center gap-2">✂️ Ajustar marco (arrastra dentro del cuadro)</h3>
-                        <div>
-                            <label class="block mb-1">Zoom</label>
-                            <input type="range" id="zoomSlider" min="1" max="4" step="0.05" value="1.2" class="w-full accent-pink-500">
-                            <div class="text-right text-xs text-gray-400" id="zoomValue">1.2x</div>
+                        <div class="slider-wrapper flex items-center gap-2">
+                            <button onclick="adjustSlider('zoomSlider', -0.05)" class="fine-btn text-lg">-</button>
+                            <input type="range" id="zoomSlider" min="1" max="4" step="0.01" value="1.2" class="flex-1 accent-pink-500">
+                            <button onclick="adjustSlider('zoomSlider', 0.05)" class="fine-btn text-lg">+</button>
                         </div>
-                        <button onclick="resetCrop()" 
-                                class="text-sm text-pink-400 hover:text-pink-300 underline mt-3">🔄 Resetear marco</button>
+                        <div class="text-right text-xs text-gray-400" id="zoomValue">1.20x</div>
+                        <button onclick="resetCrop()" class="text-sm text-pink-400 hover:text-pink-300 underline mt-3">🔄 Resetear marco</button>
                     </div>
 
-                    <!-- === NUEVA SECCIÓN: TEXTO TIKTOK === -->
+                    <!-- TEXTO TIKTOK -->
                     <div class="pt-4 border-t border-gray-700">
                         <h3 class="font-semibold mb-3 flex items-center gap-2">📝 Texto estilo TikTok</h3>
                         <input id="textInput" type="text" placeholder="Escribe aquí tu texto" 
                                class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500 text-lg">
                         <div class="flex gap-3 mt-3">
-                            <button onclick="applyText()" 
-                                    class="flex-1 btn-modern bg-pink-600 hover:bg-pink-700 py-3 rounded-2xl font-medium">Aplicar texto</button>
-                            <button onclick="removeText()" 
-                                    class="flex-1 btn-modern bg-gray-700 hover:bg-gray-600 py-3 rounded-2xl font-medium">Eliminar texto</button>
+                            <button onclick="applyText()" class="flex-1 btn-modern bg-pink-600 hover:bg-pink-700 py-3 rounded-2xl font-medium">Aplicar texto</button>
+                            <button onclick="removeText()" class="flex-1 btn-modern bg-gray-700 hover:bg-gray-600 py-3 rounded-2xl font-medium">Eliminar texto</button>
                         </div>
                         
                         <div class="mt-4">
                             <label class="block mb-1 text-xs font-medium">Tamaño del texto</label>
-                            <input type="range" id="textSizeSlider" min="24" max="110" step="2" value="68" class="w-full accent-pink-500">
+                            <div class="slider-wrapper flex items-center gap-2">
+                                <button onclick="adjustSlider('textSizeSlider', -2)" class="fine-btn text-lg">-</button>
+                                <input type="range" id="textSizeSlider" min="24" max="110" step="1" value="68" class="flex-1 accent-pink-500">
+                                <button onclick="adjustSlider('textSizeSlider', 2)" class="fine-btn text-lg">+</button>
+                            </div>
                             <div class="text-right text-xs text-gray-400" id="textSizeValue">68 px</div>
                         </div>
                         
                         <div class="mt-4">
-                            <label class="block mb-1 text-xs font-medium">Posición vertical (arrastra el texto en la preview)</label>
+                            <label class="block mb-1 text-xs font-medium">Posición vertical</label>
                             <input type="range" id="textYSlider" min="100" max="460" step="1" value="400" class="w-full accent-pink-500">
                         </div>
                         
@@ -175,8 +205,7 @@
 
                     <div class="bg-gray-800 rounded-2xl p-5 text-xs space-y-2">
                         <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Marco grande morado</p>
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Arrastra para mover el vídeo</p>
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Arrastra el texto para moverlo</p>
+                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Arrastra vídeo o texto</p>
                     </div>
 
                     <p id="sizeWarning" class="hidden bg-amber-400 text-black text-center font-medium py-3 px-6 rounded-3xl text-sm flex items-center justify-center gap-2">
@@ -208,13 +237,13 @@
         let exportCanvas = null;
         let exportCtx = null;
 
-        // Crop
+        // Crop & estado
         let zoom = 1.2, panX = 0, panY = 0;
 
         // Texto TikTok
         let overlayText = "";
         let textFontSize = 68;
-        let textY = 400;           // posición vertical (X siempre centrado)
+        let textY = 400;
 
         // Playback
         let isPlaying = false;
@@ -253,7 +282,7 @@
 
                 const startSlider = document.getElementById('startSlider');
                 const durationSlider = document.getElementById('durationSlider');
-                startSlider.max = video.duration.toFixed(1);
+                startSlider.max = video.duration.toFixed(2);
                 updateDurationMax();
 
                 startSlider.addEventListener('input', () => { updateTimeValues(); updateDurationMax(); });
@@ -268,6 +297,24 @@
                 drawPreview();
             };
         });
+
+        // ==================== BOTONES +/- PARA SLIDERS ====================
+        function adjustSlider(sliderId, delta) {
+            const slider = document.getElementById(sliderId);
+            let value = parseFloat(slider.value);
+            value = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), value + delta));
+            slider.value = value.toFixed(2);
+            
+            if (sliderId === 'startSlider' || sliderId === 'durationSlider') {
+                updateTimeValues();
+                updateDurationMax();
+            } else if (sliderId === 'zoomSlider') {
+                updateCrop();
+            } else if (sliderId === 'textSizeSlider') {
+                updateTextSize();
+            }
+            drawPreview();
+        }
 
         // ==================== TEXTO TIKTOK ====================
         function applyText() {
@@ -294,9 +341,10 @@
             if (overlayText) drawPreview();
         }
 
-        // ==================== DRAW PREVIEW (con texto) ====================
-        function drawPreview() {
+        // ==================== DRAW PREVIEW ====================
+        function drawPreview(currentTime = null) {
             if (!video || !ctx) return;
+            if (currentTime !== null) video.currentTime = currentTime;
 
             const vw = video.videoWidth;
             const vh = video.videoHeight;
@@ -310,7 +358,6 @@
             ctx.clearRect(0, 0, 512, 512);
             ctx.drawImage(video, sourceX, sourceY, sourceW, sourceH, 0, 0, 512, 512);
 
-            // === DIBUJAR TEXTO ESTILO TIKTOK ===
             if (overlayText) {
                 ctx.save();
                 ctx.font = `900 ${textFontSize}px Impact, Arial Black, sans-serif`;
@@ -318,21 +365,16 @@
                 ctx.textBaseline = "middle";
                 ctx.lineJoin = "round";
                 ctx.miterLimit = 2;
-
-                // Contorno negro grueso
                 ctx.strokeStyle = "#000000";
                 ctx.lineWidth = textFontSize * 0.18;
                 ctx.strokeText(overlayText, 256, textY);
-
-                // Relleno blanco
                 ctx.fillStyle = "#FFFFFF";
                 ctx.fillText(overlayText, 256, textY);
-
                 ctx.restore();
             }
         }
 
-        // ==================== PLAYBACK (exacto start → duration + bucle) ====================
+        // ==================== PLAYBACK PREVIEW (exacto y en bucle) ====================
         function togglePlay() {
             if (!video) return;
             const start = parseFloat(document.getElementById('startSlider').value);
@@ -344,10 +386,9 @@
                 isPlaying = true;
                 document.getElementById('playBtn').innerHTML = '⏸️ Pausar';
 
-                // Bucle exacto del segmento
                 const loopSegment = () => {
                     if (!isPlaying) return;
-                    if (video.currentTime >= start + dur) {
+                    if (video.currentTime >= start + dur - 0.01) {
                         video.currentTime = start;
                     }
                     rafId = requestAnimationFrame(loopSegment);
@@ -377,24 +418,21 @@
             rafId = null;
         }
 
-        // ==================== DRAG (vídeo + texto) ====================
+        // ==================== DRAG ====================
         function setupDragHandlers() {
             const container = document.getElementById('previewContainer');
-            const frame = document.getElementById('cropFrame');
-            frame.classList.remove('hidden');
+            document.getElementById('cropFrame').classList.remove('hidden');
 
             container.addEventListener('pointerdown', e => {
                 if (e.button !== 0) return;
                 lastPointerX = e.clientX;
                 lastPointerY = e.clientY;
 
-                // Si hay texto, comprobamos si el clic está cerca del texto para moverlo
                 if (overlayText) {
                     const rect = canvas.getBoundingClientRect();
                     const clickX = (e.clientX - rect.left) * (512 / rect.width);
                     const clickY = (e.clientY - rect.top) * (512 / rect.height);
-                    const textHeightHalf = textFontSize / 1.8;
-                    if (Math.abs(clickY - textY) < textHeightHalf + 30) {
+                    if (Math.abs(clickY - textY) < textFontSize / 1.5 + 20) {
                         isDraggingText = true;
                         isDragging = false;
                         container.setPointerCapture(e.pointerId);
@@ -409,7 +447,6 @@
             document.addEventListener('pointermove', e => {
                 if (!isDragging && !isDraggingText) return;
 
-                const dx = (e.clientX - lastPointerX) * (1 / zoom) * 0.009;
                 const dy = (e.clientY - lastPointerY) * (1 / zoom) * 0.009;
 
                 if (isDraggingText) {
@@ -418,6 +455,7 @@
                     lastPointerY = e.clientY;
                     drawPreview();
                 } else if (isDragging) {
+                    const dx = (e.clientX - lastPointerX) * (1 / zoom) * 0.009;
                     panX -= dx;
                     panY -= dy;
                     panX = Math.max(-1, Math.min(1, panX));
@@ -428,64 +466,19 @@
                 }
             });
 
-            document.addEventListener('pointerup', () => {
-                isDragging = false;
-                isDraggingText = false;
-            });
+            document.addEventListener('pointerup', () => { isDragging = false; isDraggingText = false; });
 
-            // Touch y wheel (sin cambios importantes)
-            container.addEventListener('touchstart', e => { /* igual que antes */ }, { passive: false });
-            container.addEventListener('touchmove', e => { /* igual que antes */ }, { passive: false });
-            container.addEventListener('touchend', () => { isDragging = false; isDraggingText = false; });
+            // Touch y wheel (mismo que antes)
             container.addEventListener('wheel', e => {
                 e.preventDefault();
                 const delta = e.deltaY > 0 ? -0.12 : 0.12;
                 zoom = Math.max(1, Math.min(4, zoom + delta));
-                document.getElementById('zoomSlider').value = zoom;
+                document.getElementById('zoomSlider').value = zoom.toFixed(2);
                 updateCrop();
             });
         }
 
-        // ==================== FUNCIONES AUXILIARES (sin cambios) ====================
-        function setFPS(fps) {
-            currentFPS = fps;
-            document.getElementById('btn20').classList.toggle('bg-emerald-600', fps === 20);
-            document.getElementById('btn20').classList.toggle('bg-gray-700', fps !== 20);
-            document.getElementById('btn15').classList.toggle('bg-emerald-600', fps === 15);
-            document.getElementById('btn15').classList.toggle('bg-gray-700', fps !== 15);
-        }
-
-        function updateDurationMax() {
-            const start = parseFloat(document.getElementById('startSlider').value);
-            const remaining = video.duration - start;
-            const maxAllowed = Math.min(3, remaining);
-            const durationSlider = document.getElementById('durationSlider');
-            durationSlider.max = maxAllowed.toFixed(1);
-            if (parseFloat(durationSlider.value) > maxAllowed) durationSlider.value = maxAllowed.toFixed(1);
-            document.getElementById('remainingInfo').textContent = `Máx. posible: ${maxAllowed.toFixed(1)} s`;
-        }
-
-        function updateTimeValues() {
-            const start = parseFloat(document.getElementById('startSlider').value);
-            const dur = parseFloat(document.getElementById('durationSlider').value);
-            document.getElementById('startValue').textContent = start.toFixed(1) + " s";
-            document.getElementById('durationValue').textContent = dur.toFixed(1) + " s";
-            document.getElementById('durationMax').textContent = (start + dur).toFixed(1) + " s";
-        }
-
-        function updateCrop() {
-            zoom = parseFloat(document.getElementById('zoomSlider').value);
-            document.getElementById('zoomValue').textContent = zoom.toFixed(1) + 'x';
-            drawPreview();
-        }
-
-        function resetCrop() {
-            zoom = 1.2; panX = 0; panY = 0;
-            document.getElementById('zoomSlider').value = 1.2;
-            drawPreview();
-        }
-
-        // ==================== EXPORTACIÓN CORREGIDA Y MEJORADA ====================
+        // ==================== EXPORTACIÓN CORREGIDA (ahora sí tiene movimiento) ====================
         async function exportSticker() {
             if (!video || !exportCtx) return;
 
@@ -496,9 +489,7 @@
             const duration = parseFloat(document.getElementById('durationSlider').value);
 
             const stream = exportCanvas.captureStream(currentFPS);
-            const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
-                         ? 'video/webm;codecs=vp9' 
-                         : 'video/webm';
+            const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
             const recorder = new MediaRecorder(stream, { mimeType: mime });
             const chunks = [];
 
@@ -506,8 +497,6 @@
             recorder.onstop = () => {
                 statusEl.classList.add('hidden');
                 const blob = new Blob(chunks, { type: mime });
-                const sizeKB = (blob.size / 1024).toFixed(1);
-
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -515,34 +504,36 @@
                 a.click();
 
                 const warningEl = document.getElementById('sizeWarning');
-                if (blob.size > 256 * 1024) {
-                    warningEl.classList.remove('hidden');
-                } else {
-                    warningEl.classList.add('hidden');
-                }
+                if (blob.size > 256 * 1024) warningEl.classList.remove('hidden');
+                else warningEl.classList.add('hidden');
             };
 
+            // === MÉTODO FIABLE: reproducimos el segmento exacto y dibujamos en RAF ===
+            video.currentTime = startTime;
+            await new Promise(r => { video.onseeked = r; });
+
             recorder.start();
+            video.play();
 
-            // === BUCLE DE EXPORTACIÓN FRAME POR FRAME (con texto) ===
-            const frameInterval = 1000 / currentFPS;
-            let elapsed = 0;
-            let lastTime = Date.now();
+            const exportStart = performance.now();
+            let lastFrame = 0;
 
-            const exportFrame = () => {
-                const now = Date.now();
-                elapsed += (now - lastTime) / 1000;
-                lastTime = now;
+            const exportLoop = () => {
+                const elapsed = (performance.now() - exportStart) / 1000;
 
                 if (elapsed >= duration) {
+                    video.pause();
                     recorder.stop();
                     return;
                 }
 
-                // Avanzar vídeo al tiempo correcto
-                video.currentTime = startTime + (elapsed % duration);
+                // Dibujamos el frame actual (mismo que preview)
+                drawPreviewForExport();
 
-                // Dibujar frame + texto
+                requestAnimationFrame(exportLoop);
+            };
+
+            function drawPreviewForExport() {
                 const vw = video.videoWidth;
                 const vh = video.videoHeight;
                 const sourceW = vw / zoom;
@@ -555,7 +546,6 @@
                 exportCtx.clearRect(0, 0, 512, 512);
                 exportCtx.drawImage(video, sourceX, sourceY, sourceW, sourceH, 0, 0, 512, 512);
 
-                // Texto TikTok en exportación
                 if (overlayText) {
                     exportCtx.save();
                     exportCtx.font = `900 ${textFontSize}px Impact, Arial Black, sans-serif`;
@@ -569,26 +559,56 @@
                     exportCtx.fillText(overlayText, 256, textY);
                     exportCtx.restore();
                 }
+            }
 
-                setTimeout(exportFrame, frameInterval);
-            };
-
-            // Esperamos un tick para que el primer frame se dibuje
-            setTimeout(exportFrame, 10);
+            requestAnimationFrame(exportLoop);
         }
 
-        // ==================== DESCARGADOR (placeholder) ====================
+        // ==================== FUNCIONES AUXILIARES ====================
+        function setFPS(fps) {
+            currentFPS = fps;
+            document.getElementById('btn20').classList.toggle('bg-emerald-600', fps === 20);
+            document.getElementById('btn20').classList.toggle('bg-gray-700', fps !== 20);
+            document.getElementById('btn15').classList.toggle('bg-emerald-600', fps === 15);
+            document.getElementById('btn15').classList.toggle('bg-gray-700', fps !== 15);
+        }
+
+        function updateDurationMax() {
+            const start = parseFloat(document.getElementById('startSlider').value);
+            const remaining = video.duration - start;
+            const maxAllowed = Math.min(3, remaining);
+            const durationSlider = document.getElementById('durationSlider');
+            durationSlider.max = maxAllowed.toFixed(2);
+            if (parseFloat(durationSlider.value) > maxAllowed) durationSlider.value = maxAllowed.toFixed(2);
+            document.getElementById('remainingInfo').textContent = `Máx. posible: ${maxAllowed.toFixed(2)} s`;
+        }
+
+        function updateTimeValues() {
+            const start = parseFloat(document.getElementById('startSlider').value);
+            const dur = parseFloat(document.getElementById('durationSlider').value);
+            document.getElementById('startValue').textContent = start.toFixed(2) + " s";
+            document.getElementById('durationValue').textContent = dur.toFixed(2) + " s";
+            document.getElementById('durationMax').textContent = (start + dur).toFixed(2) + " s";
+        }
+
+        function updateCrop() {
+            zoom = parseFloat(document.getElementById('zoomSlider').value);
+            document.getElementById('zoomValue').textContent = zoom.toFixed(2) + 'x';
+            drawPreview();
+        }
+
+        function resetCrop() {
+            zoom = 1.2; panX = 0; panY = 0;
+            document.getElementById('zoomSlider').value = 1.2;
+            drawPreview();
+        }
+
         function openDownloader() {
             const url = document.getElementById('tiktokUrl').value.trim();
-            if (!url) {
-                alert("Por favor pega un enlace de TikTok primero");
-                return;
-            }
-            // Ejemplo: abre SnapTik (puedes cambiar la URL)
+            if (!url) return alert("Por favor pega un enlace de TikTok primero");
             window.open(`https://snaptik.app/es-es?lang=es&url=${encodeURIComponent(url)}`, '_blank');
         }
 
-        // Inicialización
         window.onload = initTailwind;
     </script>
 </body>
