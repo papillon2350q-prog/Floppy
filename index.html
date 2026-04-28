@@ -8,7 +8,14 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
         body { font-family: 'Inter', sans-serif; }
-        .video-container { background: #111; border-radius: 20px; overflow: hidden; position: relative; }
+        .video-container { 
+            background: #111; 
+            border-radius: 20px; 
+            overflow: hidden; 
+            position: relative; 
+            touch-action: none; 
+            user-select: none; 
+        }
         .crop-overlay {
             position: absolute;
             top: 50%;
@@ -58,13 +65,14 @@
             0% { transform: scale(0.95); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
+        @media (max-width: 640px) { .p-8 { padding: 1rem !important; } }
     </style>
 </head>
 <body class="bg-gray-950 text-white min-h-screen">
     <div class="max-w-4xl mx-auto px-4 py-6 md:p-8">
         <div class="text-center mb-8">
             <h1 class="text-4xl md:text-5xl font-bold mb-2">🎟️ TikTok → Telegram Sticker</h1>
-            <p class="text-lg md:text-xl text-emerald-400">Preview exacta • Límite 256 KB controlado</p>
+            <p class="text-lg md:text-xl text-emerald-400">Preview exacta • Modal 256 KB • Drag fijo • ssTik</p>
         </div>
 
         <!-- Paso 1 -->
@@ -77,11 +85,11 @@
                        class="flex-1 bg-gray-800 border border-gray-700 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-pink-500">
                 <button onclick="openDownloader()" 
                         class="btn-modern bg-pink-600 hover:bg-pink-700 px-8 py-4 rounded-2xl font-medium flex items-center justify-center gap-2 text-base shadow-lg">
-                    <span>Abrir Descargador</span>
+                    <span>Abrir ssTik</span>
                     <span class="text-2xl">📥</span>
                 </button>
             </div>
-            <p class="text-sm text-gray-400 mt-4">Descarga el MP4 sin marca de agua con SnapTik.</p>
+            <p class="text-sm text-gray-400 mt-4">Abre ssTik.io directamente (no necesitas pegar el link aquí si no quieres).</p>
         </div>
 
         <!-- Paso 2 -->
@@ -124,7 +132,7 @@
                 </div>
 
                 <div class="flex-1 space-y-6 text-sm">
-                    <!-- Sliders con +/- -->
+                    <!-- Sliders con +/- (sin cambios) -->
                     <div>
                         <label class="block font-medium mb-2">Punto de inicio</label>
                         <div class="flex items-center gap-2">
@@ -193,16 +201,6 @@
                             <input type="range" id="textYSlider" min="100" max="460" step="1" value="400" class="w-full accent-pink-500">
                         </div>
                     </div>
-
-                    <p id="sizeWarning" class="hidden bg-amber-400 text-black text-center font-medium py-4 px-6 rounded-3xl text-sm flex flex-col items-center gap-3">
-                        <span id="warningText" class="flex items-center gap-2"></span>
-                        <div class="flex gap-3 w-full">
-                            <button onclick="downloadAnyway()" 
-                                    class="flex-1 bg-black text-white py-2 rounded-2xl text-sm font-medium">Descargar de todos modos</button>
-                            <button onclick="hideWarning()" 
-                                    class="flex-1 bg-gray-800 text-white py-2 rounded-2xl text-sm font-medium">Cancelar</button>
-                        </div>
-                    </p>
                 </div>
             </div>
         </div>
@@ -216,6 +214,22 @@
                 <li class="flex gap-3"><span class="font-mono bg-gray-800 w-5 h-5 rounded-lg flex items-center justify-center text-xs">3</span> Envía el archivo <strong>.WEBM</strong></li>
                 <li class="flex gap-3"><span class="font-mono bg-gray-800 w-5 h-5 rounded-lg flex items-center justify-center text-xs">4</span> Elige emoji y publica</li>
             </ol>
+        </div>
+    </div>
+
+    <!-- MODAL EMERGENTE (nuevo) -->
+    <div id="sizeModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-[9999]">
+        <div class="modal bg-gray-900 rounded-3xl p-8 max-w-sm w-full mx-4 text-center">
+            <div class="text-5xl mb-4">⚠️</div>
+            <h3 class="text-2xl font-bold mb-2">Sticker demasiado grande</h3>
+            <p id="modalSizeText" class="text-lg text-amber-400 mb-8"></p>
+            <div class="flex gap-3">
+                <button onclick="downloadAnyway()" 
+                        class="flex-1 btn-modern bg-emerald-600 py-4 rounded-3xl font-semibold text-white">Descargar de todos modos</button>
+                <button onclick="hideModal()" 
+                        class="flex-1 btn-modern bg-gray-700 py-4 rounded-3xl font-semibold">Cancelar</button>
+            </div>
+            <p class="text-xs text-gray-400 mt-6">Telegram solo permite hasta 256 KB</p>
         </div>
     </div>
 
@@ -242,7 +256,7 @@
         let isDraggingText = false;
         let lastPointerX = 0, lastPointerY = 0;
 
-        let lastGeneratedBlob = null;   // Para "descargar de todos modos"
+        let lastGeneratedBlob = null;
 
         function initTailwind() {
             tailwind.config = { content: ["./**/*.{html,js}"] };
@@ -287,12 +301,22 @@
             };
         });
 
+        // ==================== BOTÓN DESCARGADOR → ssTik (no necesita link) ====================
+        function openDownloader() {
+            const urlInput = document.getElementById('tiktokUrl').value.trim();
+            let target = "https://ssstik.io/es";
+            if (urlInput) {
+                target += `?url=${encodeURIComponent(urlInput)}`;
+            }
+            window.open(target, '_blank');
+        }
+
         // ==================== BOTONES +/- ====================
         function adjustSlider(sliderId, delta) {
             const slider = document.getElementById(sliderId);
             let value = parseFloat(slider.value);
             value = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), value + delta));
-            slider.value = value.toFixed(sliderId.includes('Slider') ? 2 : 0);
+            slider.value = value.toFixed(2);
             
             if (sliderId === 'startSlider' || sliderId === 'durationSlider') {
                 updateTimeValues();
@@ -357,7 +381,7 @@
             }
         }
 
-        // ==================== PREVIEW EXACTA (arreglado) ====================
+        // ==================== PREVIEW PLAYBACK ====================
         function togglePlay() {
             if (!video) return;
             const start = parseFloat(document.getElementById('startSlider').value);
@@ -371,9 +395,7 @@
 
                 const loopSegment = () => {
                     if (!isPlaying) return;
-                    if (video.currentTime >= start + dur - 0.008) {
-                        video.currentTime = start;
-                    }
+                    if (video.currentTime >= start + dur - 0.008) video.currentTime = start;
                     rafId = requestAnimationFrame(loopSegment);
                 };
                 loopSegment();
@@ -391,7 +413,7 @@
             }
         }
 
-        // ==================== DRAG (sin cambios) ====================
+        // ==================== DRAG (ARREGLADO – sin scroll de página) ====================
         function setupDragHandlers() {
             const container = document.getElementById('previewContainer');
             document.getElementById('cropFrame').classList.remove('hidden');
@@ -418,6 +440,8 @@
 
             document.addEventListener('pointermove', e => {
                 if (!isDragging && !isDraggingText) return;
+
+                const dx = (e.clientX - lastPointerX) * (1 / zoom) * 0.009;
                 const dy = (e.clientY - lastPointerY) * (1 / zoom) * 0.009;
 
                 if (isDraggingText) {
@@ -426,7 +450,6 @@
                     lastPointerY = e.clientY;
                     drawPreview();
                 } else if (isDragging) {
-                    const dx = (e.clientX - lastPointerX) * (1 / zoom) * 0.009;
                     panX -= dx;
                     panY -= dy;
                     panX = Math.max(-1, Math.min(1, panX));
@@ -439,6 +462,39 @@
 
             document.addEventListener('pointerup', () => { isDragging = false; isDraggingText = false; });
 
+            // Touch events (clave para evitar scroll de página)
+            container.addEventListener('touchstart', e => {
+                if (e.touches.length !== 1) return;
+                lastPointerX = e.touches[0].clientX;
+                lastPointerY = e.touches[0].clientY;
+                e.preventDefault();
+            }, { passive: false });
+
+            container.addEventListener('touchmove', e => {
+                if (e.touches.length !== 1) return;
+                e.preventDefault();
+
+                const dx = (e.touches[0].clientX - lastPointerX) * (1 / zoom) * 0.009;
+                const dy = (e.touches[0].clientY - lastPointerY) * (1 / zoom) * 0.009;
+
+                if (isDraggingText) {
+                    textY = Math.max(100, Math.min(460, textY + dy * 80));
+                    document.getElementById('textYSlider').value = textY;
+                    lastPointerY = e.touches[0].clientY;
+                    drawPreview();
+                } else if (isDragging) {
+                    panX -= dx;
+                    panY -= dy;
+                    panX = Math.max(-1, Math.min(1, panX));
+                    panY = Math.max(-1, Math.min(1, panY));
+                    lastPointerX = e.touches[0].clientX;
+                    lastPointerY = e.touches[0].clientY;
+                    drawPreview();
+                }
+            }, { passive: false });
+
+            container.addEventListener('touchend', () => { isDragging = false; isDraggingText = false; });
+
             container.addEventListener('wheel', e => {
                 e.preventDefault();
                 const delta = e.deltaY > 0 ? -0.12 : 0.12;
@@ -448,13 +504,12 @@
             });
         }
 
-        // ==================== EXPORTACIÓN CON CARTEL (NO DESCARGA AUTOMÁTICA) ====================
+        // ==================== EXPORTACIÓN + MODAL ====================
         async function exportSticker() {
             if (!video || !exportCtx) return;
 
             const statusEl = document.getElementById('exportStatus');
             statusEl.classList.remove('hidden');
-            document.getElementById('sizeWarning').classList.add('hidden');
 
             const startTime = parseFloat(document.getElementById('startSlider').value);
             const duration = parseFloat(document.getElementById('durationSlider').value);
@@ -471,21 +526,17 @@
                 lastGeneratedBlob = blob;
 
                 const sizeKB = Math.round(blob.size / 1024);
-
                 if (sizeKB <= 256) {
                     downloadBlob(blob);
                 } else {
-                    // MOSTRAR CARTEL (NO DESCARGA AUTOMÁTICA)
-                    document.getElementById('warningText').innerHTML = `
-                        ⚠️ El sticker pesa <strong>${sizeKB} KB</strong><br>
-                        Telegram solo permite hasta 256 KB
-                    `;
-                    document.getElementById('sizeWarning').classList.remove('hidden');
+                    // MOSTRAR MODAL EMERGENTE
+                    document.getElementById('modalSizeText').innerHTML = `El sticker pesa <strong>${sizeKB} KB</strong>`;
+                    document.getElementById('sizeModal').classList.remove('hidden');
                 }
             };
 
             video.currentTime = startTime;
-            await new Promise(r => video.onseeked = r);
+            await new Promise(r => { video.onseeked = r; });
 
             recorder.start();
             video.play();
@@ -544,14 +595,12 @@
         }
 
         function downloadAnyway() {
-            if (lastGeneratedBlob) {
-                downloadBlob(lastGeneratedBlob);
-                hideWarning();
-            }
+            if (lastGeneratedBlob) downloadBlob(lastGeneratedBlob);
+            hideModal();
         }
 
-        function hideWarning() {
-            document.getElementById('sizeWarning').classList.add('hidden');
+        function hideModal() {
+            document.getElementById('sizeModal').classList.add('hidden');
             lastGeneratedBlob = null;
         }
 
@@ -592,12 +641,6 @@
             zoom = 1.2; panX = 0; panY = 0;
             document.getElementById('zoomSlider').value = 1.2;
             drawPreview();
-        }
-
-        function openDownloader() {
-            const url = document.getElementById('tiktokUrl').value.trim();
-            if (!url) return alert("Por favor pega un enlace de TikTok primero");
-            window.open(`https://snaptik.app/es-es?lang=es&url=${encodeURIComponent(url)}`, '_blank');
         }
 
         window.onload = initTailwind;
