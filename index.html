@@ -38,33 +38,33 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3);
         }
-        .slider-wrapper {
-            position: relative;
-        }
         .fine-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 28px;
-            height: 28px;
-            font-size: 18px;
+            width: 32px;
+            height: 32px;
+            font-size: 20px;
             line-height: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             background: #374151;
-            color: #fff;
+            color: white;
             border-radius: 50%;
-            z-index: 10;
+            flex-shrink: 0;
         }
-        @media (max-width: 640px) { .p-8 { padding: 1rem !important; } }
+        .modal {
+            animation: modalPop 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes modalPop {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body class="bg-gray-950 text-white min-h-screen">
     <div class="max-w-4xl mx-auto px-4 py-6 md:p-8">
         <div class="text-center mb-8">
             <h1 class="text-4xl md:text-5xl font-bold mb-2">🎟️ TikTok → Telegram Sticker</h1>
-            <p class="text-lg md:text-xl text-emerald-400">Marco grande • 15 o 20 fps • Texto TikTok • Preview + Export exactos</p>
+            <p class="text-lg md:text-xl text-emerald-400">Preview exacta • Límite 256 KB controlado</p>
         </div>
 
         <!-- Paso 1 -->
@@ -124,24 +124,23 @@
                 </div>
 
                 <div class="flex-1 space-y-6 text-sm">
-                    <!-- Punto de inicio con botones +/- -->
+                    <!-- Sliders con +/- -->
                     <div>
                         <label class="block font-medium mb-2">Punto de inicio</label>
-                        <div class="slider-wrapper flex items-center gap-2">
-                            <button onclick="adjustSlider('startSlider', -0.01)" class="fine-btn text-lg">-</button>
+                        <div class="flex items-center gap-2">
+                            <button onclick="adjustSlider('startSlider', -0.01)" class="fine-btn">-</button>
                             <input type="range" id="startSlider" min="0" max="100" step="0.01" value="0" class="flex-1 accent-pink-500">
-                            <button onclick="adjustSlider('startSlider', 0.01)" class="fine-btn text-lg">+</button>
+                            <button onclick="adjustSlider('startSlider', 0.01)" class="fine-btn">+</button>
                         </div>
                         <div class="flex justify-between text-xs text-gray-400"><span id="startValue">0.00 s</span><span id="durationMax">0.00 s</span></div>
                     </div>
 
-                    <!-- Duración con botones +/- -->
                     <div>
                         <label class="block font-medium mb-2">Duración del sticker</label>
-                        <div class="slider-wrapper flex items-center gap-2">
-                            <button onclick="adjustSlider('durationSlider', -0.01)" class="fine-btn text-lg">-</button>
+                        <div class="flex items-center gap-2">
+                            <button onclick="adjustSlider('durationSlider', -0.01)" class="fine-btn">-</button>
                             <input type="range" id="durationSlider" min="0.1" max="3" step="0.01" value="2" class="flex-1 accent-pink-500">
-                            <button onclick="adjustSlider('durationSlider', 0.01)" class="fine-btn text-lg">+</button>
+                            <button onclick="adjustSlider('durationSlider', 0.01)" class="fine-btn">+</button>
                         </div>
                         <div class="flex justify-between text-xs text-gray-400"><span id="durationValue">2.00 s</span><span id="remainingInfo" class="text-amber-400"></span></div>
                     </div>
@@ -158,58 +157,51 @@
                                 15 fps <span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">MÁS LIGERO</span>
                             </button>
                         </div>
-                        <p class="text-xs text-gray-400 mt-2">20 fps = más fluido • 15 fps = más fácil que entre en 256 KB</p>
                     </div>
 
                     <div class="pt-4 border-t border-gray-700">
-                        <h3 class="font-semibold mb-4 flex items-center gap-2">✂️ Ajustar marco (arrastra dentro del cuadro)</h3>
-                        <div class="slider-wrapper flex items-center gap-2">
-                            <button onclick="adjustSlider('zoomSlider', -0.05)" class="fine-btn text-lg">-</button>
+                        <h3 class="font-semibold mb-4 flex items-center gap-2">✂️ Ajustar marco</h3>
+                        <div class="flex items-center gap-2">
+                            <button onclick="adjustSlider('zoomSlider', -0.05)" class="fine-btn">-</button>
                             <input type="range" id="zoomSlider" min="1" max="4" step="0.01" value="1.2" class="flex-1 accent-pink-500">
-                            <button onclick="adjustSlider('zoomSlider', 0.05)" class="fine-btn text-lg">+</button>
+                            <button onclick="adjustSlider('zoomSlider', 0.05)" class="fine-btn">+</button>
                         </div>
                         <div class="text-right text-xs text-gray-400" id="zoomValue">1.20x</div>
                         <button onclick="resetCrop()" class="text-sm text-pink-400 hover:text-pink-300 underline mt-3">🔄 Resetear marco</button>
                     </div>
 
-                    <!-- TEXTO TIKTOK -->
+                    <!-- Texto TikTok (sin cambios) -->
                     <div class="pt-4 border-t border-gray-700">
                         <h3 class="font-semibold mb-3 flex items-center gap-2">📝 Texto estilo TikTok</h3>
                         <input id="textInput" type="text" placeholder="Escribe aquí tu texto" 
                                class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500 text-lg">
                         <div class="flex gap-3 mt-3">
-                            <button onclick="applyText()" class="flex-1 btn-modern bg-pink-600 hover:bg-pink-700 py-3 rounded-2xl font-medium">Aplicar texto</button>
-                            <button onclick="removeText()" class="flex-1 btn-modern bg-gray-700 hover:bg-gray-600 py-3 rounded-2xl font-medium">Eliminar texto</button>
+                            <button onclick="applyText()" class="flex-1 btn-modern bg-pink-600 hover:bg-pink-700 py-3 rounded-2xl font-medium">Aplicar</button>
+                            <button onclick="removeText()" class="flex-1 btn-modern bg-gray-700 hover:bg-gray-600 py-3 rounded-2xl font-medium">Eliminar</button>
                         </div>
-                        
                         <div class="mt-4">
                             <label class="block mb-1 text-xs font-medium">Tamaño del texto</label>
-                            <div class="slider-wrapper flex items-center gap-2">
-                                <button onclick="adjustSlider('textSizeSlider', -2)" class="fine-btn text-lg">-</button>
+                            <div class="flex items-center gap-2">
+                                <button onclick="adjustSlider('textSizeSlider', -2)" class="fine-btn">-</button>
                                 <input type="range" id="textSizeSlider" min="24" max="110" step="1" value="68" class="flex-1 accent-pink-500">
-                                <button onclick="adjustSlider('textSizeSlider', 2)" class="fine-btn text-lg">+</button>
+                                <button onclick="adjustSlider('textSizeSlider', 2)" class="fine-btn">+</button>
                             </div>
                             <div class="text-right text-xs text-gray-400" id="textSizeValue">68 px</div>
                         </div>
-                        
                         <div class="mt-4">
                             <label class="block mb-1 text-xs font-medium">Posición vertical</label>
                             <input type="range" id="textYSlider" min="100" max="460" step="1" value="400" class="w-full accent-pink-500">
                         </div>
-                        
-                        <div class="bg-gray-800 rounded-2xl p-4 text-xs mt-4 flex items-center gap-2">
-                            <span class="text-pink-400">ℹ️</span>
-                            <span class="text-gray-300">Estilo clásico TikTok: blanco + contorno negro grueso</span>
+                    </div>
+
+                    <p id="sizeWarning" class="hidden bg-amber-400 text-black text-center font-medium py-4 px-6 rounded-3xl text-sm flex flex-col items-center gap-3">
+                        <span id="warningText" class="flex items-center gap-2"></span>
+                        <div class="flex gap-3 w-full">
+                            <button onclick="downloadAnyway()" 
+                                    class="flex-1 bg-black text-white py-2 rounded-2xl text-sm font-medium">Descargar de todos modos</button>
+                            <button onclick="hideWarning()" 
+                                    class="flex-1 bg-gray-800 text-white py-2 rounded-2xl text-sm font-medium">Cancelar</button>
                         </div>
-                    </div>
-
-                    <div class="bg-gray-800 rounded-2xl p-5 text-xs space-y-2">
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Marco grande morado</p>
-                        <p class="flex items-center gap-2 text-emerald-400"><span>✅</span> Arrastra vídeo o texto</p>
-                    </div>
-
-                    <p id="sizeWarning" class="hidden bg-amber-400 text-black text-center font-medium py-3 px-6 rounded-3xl text-sm flex items-center justify-center gap-2">
-                        ⚠️ El sticker pesa más de 256 KB. Cambia a 15 fps o reduce duración/zoom y vuelve a exportar.
                     </p>
                 </div>
             </div>
@@ -237,23 +229,20 @@
         let exportCanvas = null;
         let exportCtx = null;
 
-        // Crop & estado
         let zoom = 1.2, panX = 0, panY = 0;
-
-        // Texto TikTok
         let overlayText = "";
         let textFontSize = 68;
         let textY = 400;
 
-        // Playback
         let isPlaying = false;
         let rafId = null;
         let currentFPS = 20;
 
-        // Drag
         let isDragging = false;
         let isDraggingText = false;
         let lastPointerX = 0, lastPointerY = 0;
+
+        let lastGeneratedBlob = null;   // Para "descargar de todos modos"
 
         function initTailwind() {
             tailwind.config = { content: ["./**/*.{html,js}"] };
@@ -298,12 +287,12 @@
             };
         });
 
-        // ==================== BOTONES +/- PARA SLIDERS ====================
+        // ==================== BOTONES +/- ====================
         function adjustSlider(sliderId, delta) {
             const slider = document.getElementById(sliderId);
             let value = parseFloat(slider.value);
             value = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), value + delta));
-            slider.value = value.toFixed(2);
+            slider.value = value.toFixed(sliderId.includes('Slider') ? 2 : 0);
             
             if (sliderId === 'startSlider' || sliderId === 'durationSlider') {
                 updateTimeValues();
@@ -323,29 +312,24 @@
             textY = parseFloat(document.getElementById('textYSlider').value);
             drawPreview();
         }
-
         function removeText() {
             overlayText = "";
             document.getElementById('textInput').value = "";
             drawPreview();
         }
-
         function updateTextSize() {
             textFontSize = parseFloat(document.getElementById('textSizeSlider').value);
             document.getElementById('textSizeValue').textContent = Math.round(textFontSize) + " px";
             if (overlayText) drawPreview();
         }
-
         function updateTextY() {
             textY = parseFloat(document.getElementById('textYSlider').value);
             if (overlayText) drawPreview();
         }
 
         // ==================== DRAW PREVIEW ====================
-        function drawPreview(currentTime = null) {
+        function drawPreview() {
             if (!video || !ctx) return;
-            if (currentTime !== null) video.currentTime = currentTime;
-
             const vw = video.videoWidth;
             const vh = video.videoHeight;
             const sourceW = vw / zoom;
@@ -364,7 +348,6 @@
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.lineJoin = "round";
-                ctx.miterLimit = 2;
                 ctx.strokeStyle = "#000000";
                 ctx.lineWidth = textFontSize * 0.18;
                 ctx.strokeText(overlayText, 256, textY);
@@ -374,7 +357,7 @@
             }
         }
 
-        // ==================== PLAYBACK PREVIEW (exacto y en bucle) ====================
+        // ==================== PREVIEW EXACTA (arreglado) ====================
         function togglePlay() {
             if (!video) return;
             const start = parseFloat(document.getElementById('startSlider').value);
@@ -388,37 +371,27 @@
 
                 const loopSegment = () => {
                     if (!isPlaying) return;
-                    if (video.currentTime >= start + dur - 0.01) {
+                    if (video.currentTime >= start + dur - 0.008) {
                         video.currentTime = start;
                     }
                     rafId = requestAnimationFrame(loopSegment);
                 };
                 loopSegment();
 
-                startPreviewLoop();
+                const drawLoop = () => {
+                    drawPreview();
+                    rafId = requestAnimationFrame(drawLoop);
+                };
+                drawLoop();
             } else {
                 video.pause();
                 isPlaying = false;
                 document.getElementById('playBtn').innerHTML = '▶️ Reproducir segmento';
-                if (rafId) cancelAnimationFrame(rafId);
-                stopPreviewLoop();
+                cancelAnimationFrame(rafId);
             }
         }
 
-        function startPreviewLoop() {
-            if (rafId) cancelAnimationFrame(rafId);
-            function loop() {
-                drawPreview();
-                rafId = requestAnimationFrame(loop);
-            }
-            loop();
-        }
-        function stopPreviewLoop() {
-            if (rafId) cancelAnimationFrame(rafId);
-            rafId = null;
-        }
-
-        // ==================== DRAG ====================
+        // ==================== DRAG (sin cambios) ====================
         function setupDragHandlers() {
             const container = document.getElementById('previewContainer');
             document.getElementById('cropFrame').classList.remove('hidden');
@@ -430,7 +403,6 @@
 
                 if (overlayText) {
                     const rect = canvas.getBoundingClientRect();
-                    const clickX = (e.clientX - rect.left) * (512 / rect.width);
                     const clickY = (e.clientY - rect.top) * (512 / rect.height);
                     if (Math.abs(clickY - textY) < textFontSize / 1.5 + 20) {
                         isDraggingText = true;
@@ -446,7 +418,6 @@
 
             document.addEventListener('pointermove', e => {
                 if (!isDragging && !isDraggingText) return;
-
                 const dy = (e.clientY - lastPointerY) * (1 / zoom) * 0.009;
 
                 if (isDraggingText) {
@@ -468,7 +439,6 @@
 
             document.addEventListener('pointerup', () => { isDragging = false; isDraggingText = false; });
 
-            // Touch y wheel (mismo que antes)
             container.addEventListener('wheel', e => {
                 e.preventDefault();
                 const delta = e.deltaY > 0 ? -0.12 : 0.12;
@@ -478,12 +448,13 @@
             });
         }
 
-        // ==================== EXPORTACIÓN CORREGIDA (ahora sí tiene movimiento) ====================
+        // ==================== EXPORTACIÓN CON CARTEL (NO DESCARGA AUTOMÁTICA) ====================
         async function exportSticker() {
             if (!video || !exportCtx) return;
 
             const statusEl = document.getElementById('exportStatus');
             statusEl.classList.remove('hidden');
+            document.getElementById('sizeWarning').classList.add('hidden');
 
             const startTime = parseFloat(document.getElementById('startSlider').value);
             const duration = parseFloat(document.getElementById('durationSlider').value);
@@ -497,43 +468,42 @@
             recorder.onstop = () => {
                 statusEl.classList.add('hidden');
                 const blob = new Blob(chunks, { type: mime });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `sticker-tiktok-${currentFPS}fps.webm`;
-                a.click();
+                lastGeneratedBlob = blob;
 
-                const warningEl = document.getElementById('sizeWarning');
-                if (blob.size > 256 * 1024) warningEl.classList.remove('hidden');
-                else warningEl.classList.add('hidden');
+                const sizeKB = Math.round(blob.size / 1024);
+
+                if (sizeKB <= 256) {
+                    downloadBlob(blob);
+                } else {
+                    // MOSTRAR CARTEL (NO DESCARGA AUTOMÁTICA)
+                    document.getElementById('warningText').innerHTML = `
+                        ⚠️ El sticker pesa <strong>${sizeKB} KB</strong><br>
+                        Telegram solo permite hasta 256 KB
+                    `;
+                    document.getElementById('sizeWarning').classList.remove('hidden');
+                }
             };
 
-            // === MÉTODO FIABLE: reproducimos el segmento exacto y dibujamos en RAF ===
             video.currentTime = startTime;
-            await new Promise(r => { video.onseeked = r; });
+            await new Promise(r => video.onseeked = r);
 
             recorder.start();
             video.play();
 
             const exportStart = performance.now();
-            let lastFrame = 0;
 
             const exportLoop = () => {
                 const elapsed = (performance.now() - exportStart) / 1000;
-
                 if (elapsed >= duration) {
                     video.pause();
                     recorder.stop();
                     return;
                 }
-
-                // Dibujamos el frame actual (mismo que preview)
-                drawPreviewForExport();
-
+                drawExportFrame();
                 requestAnimationFrame(exportLoop);
             };
 
-            function drawPreviewForExport() {
+            function drawExportFrame() {
                 const vw = video.videoWidth;
                 const vh = video.videoHeight;
                 const sourceW = vw / zoom;
@@ -562,6 +532,27 @@
             }
 
             requestAnimationFrame(exportLoop);
+        }
+
+        function downloadBlob(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sticker-tiktok-${currentFPS}fps.webm`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadAnyway() {
+            if (lastGeneratedBlob) {
+                downloadBlob(lastGeneratedBlob);
+                hideWarning();
+            }
+        }
+
+        function hideWarning() {
+            document.getElementById('sizeWarning').classList.add('hidden');
+            lastGeneratedBlob = null;
         }
 
         // ==================== FUNCIONES AUXILIARES ====================
